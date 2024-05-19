@@ -7,7 +7,6 @@ RMTGoldPrices.defaultSettings = {
     illegalGoldPrice = 15, -- Default illegal gold price for $20
     chatDebugEnabled = false, -- Default chat debug state
     ahDebugEnabled = false, -- Default AH debug state
-    autoUpdateTokenPrice = true, -- Default auto-update WoW token price state
     enableChatFeature = true, -- Enable Chat feature by default
     enableVendorFeature = true, -- Enable Vendor feature by default
     enableTooltipFeature = true, -- Enable Tooltip feature by default
@@ -27,6 +26,34 @@ function RMTGoldPrices.LoadSettings()
     end
 end
 
+-- Function to update the token label
+local function UpdateTokenLabel(tokenLabel)
+    tokenLabel:SetText("WoW Token Price: |cFFFFFFFF" .. tostring(RMTGoldPricesDB.wowTokenPrice) .. "|r gold")
+end
+
+-- Function to fetch WoW Token price
+function RMTGoldPrices.FetchWowTokenPrice(tokenLabel)
+    -- Update the market price first
+    C_WowTokenPublic.UpdateMarketPrice()
+
+    -- Wait a bit for the market price to update
+    C_Timer.After(1, function()
+        local tokenPriceInCopper = C_WowTokenPublic.GetCurrentMarketPrice()
+        if tokenPriceInCopper then
+            -- Convert the token price from copper to gold
+            local tokenPriceInGold = tokenPriceInCopper / 10000
+            RMTGoldPricesDB.wowTokenPrice = tokenPriceInGold
+            print("RMTGoldPrices: WoW Token price updated to " .. tokenPriceInGold .. " gold.")
+            -- Update the label after fetching the price
+            if tokenLabel then
+                UpdateTokenLabel(tokenLabel)
+            end
+        else
+            print("RMTGoldPrices: Failed to retrieve the current market price.")
+        end
+    end)
+end
+
 -- Function to handle addon loaded event
 local function OnAddonLoaded(event, name)
     if name == "RMTGoldPrices" then
@@ -35,10 +62,17 @@ local function OnAddonLoaded(event, name)
     end
 end
 
--- Register event listener for ADDON_LOADED
+-- Register event listener for ADDON_LOADED and PLAYER_LOGIN
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("ADDON_LOADED")
-eventFrame:SetScript("OnEvent", OnAddonLoaded)
+eventFrame:RegisterEvent("PLAYER_LOGIN")
+eventFrame:SetScript("OnEvent", function(self, event, name)
+    if event == "ADDON_LOADED" then
+        OnAddonLoaded(event, name)
+    elseif event == "PLAYER_LOGIN" then
+        RMTGoldPrices.FetchWowTokenPrice()
+    end
+end)
 
 -- Function to toggle pause state
 function RMTGoldPrices.TogglePause()
@@ -58,54 +92,6 @@ function RMTGoldPrices.ResumeAddon()
     else
         print("RMTGoldPrices addon is already running.")
     end
-end
-
--- Function to fetch WoW Token price
-function RMTGoldPrices.FetchWowTokenPrice()
-    local wowTokenButton = _G["AuctionFilterButton13"]
-    if wowTokenButton then
-        -- Click the WoW Token button to update the price
-        wowTokenButton:Click()
-        wowTokenButton:Click()
-
-        C_Timer.After(1, function()
-            local tokenPriceFrame = BrowseWowTokenResults and BrowseWowTokenResults.BuyoutPrice
-            if tokenPriceFrame then
-                local tokenPriceText = tokenPriceFrame:GetText()
-                if tokenPriceText then
-                    local tokenPriceCleanText = tokenPriceText:gsub(",", "")
-                    local tokenPrice = tonumber(tokenPriceCleanText:match("%d+"))
-                    if tokenPrice then
-                        RMTGoldPricesDB.wowTokenPrice = tokenPrice
-                        if RMTGoldPricesDB.ahDebugEnabled then
-                            print("RMTGoldPrices: WoW Token price updated to " .. tokenPrice .. " gold.")
-                        end
-                    else
-                        if RMTGoldPricesDB.ahDebugEnabled then
-                            print("RMTGoldPrices: Failed to extract token price from text.")
-                        end
-                    end
-                else
-                    if RMTGoldPricesDB.ahDebugEnabled then
-                        print("RMTGoldPrices: Token price text not found.")
-                    end
-                end
-            else
-                if RMTGoldPricesDB.ahDebugEnabled then
-                    print("RMTGoldPrices: BuyoutPrice frame not found.")
-                end
-            end
-        end)
-    else
-        if RMTGoldPricesDB.ahDebugEnabled then
-            print("RMTGoldPrices: WoW Token button not found.")
-        end
-    end
-end
-
--- Function to handle Auction House open event
-function RMTGoldPrices.OnAuctionHouseShow()
-    RMTGoldPrices.FetchWowTokenPrice()
 end
 
 -- Create the options window
@@ -134,14 +120,28 @@ function RMTGoldPrices.CreateOptionsWindow()
     local tokenLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
     tokenLabel:SetFontObject("GameFontNormal")
     tokenLabel:SetPoint("TOPLEFT", 10, -40)
-    tokenLabel:SetText("WoW Token Price:")
+    UpdateTokenLabel(tokenLabel)
 
-    -- WoW Token Price input box
-    local tokenInput = CreateFrame("EditBox", nil, optionsFrame, "InputBoxTemplate")
-    tokenInput:SetSize(50, 20) -- width, height
-    tokenInput:SetPoint("LEFT", tokenLabel, "RIGHT", 10, 0)
-    tokenInput:SetAutoFocus(false)
-    tokenInput:SetText(tostring(RMTGoldPricesDB.wowTokenPrice))
+    -- Update WoW Token Price button
+    local updateTokenButton = CreateFrame("Button", nil, optionsFrame, "GameMenuButtonTemplate")
+    updateTokenButton:SetSize(150, 20) -- width, height
+    updateTokenButton:SetPoint("LEFT", tokenLabel, "RIGHT", 10, 0)
+    updateTokenButton:SetText("Update WoW Token Price")
+    updateTokenButton:SetNormalFontObject("GameFontNormal")
+    updateTokenButton:SetHighlightFontObject("GameFontHighlight")
+
+    local canClickUpdate = true
+    updateTokenButton:SetScript("OnClick", function()
+        if canClickUpdate then
+            canClickUpdate = false
+            RMTGoldPrices.FetchWowTokenPrice(tokenLabel)
+            C_Timer.After(5, function()
+                canClickUpdate = true
+            end)
+        else
+            print("Please wait before clicking the update button again.")
+        end
+    end)
 
     -- Illegal Gold Price text
     local illegalLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
@@ -178,21 +178,10 @@ function RMTGoldPrices.CreateOptionsWindow()
     auctionDebugCheckbox:SetPoint("LEFT", auctionDebugLabel, "RIGHT", 10, 0)
     auctionDebugCheckbox:SetChecked(RMTGoldPricesDB.ahDebugEnabled)
 
-    -- Auto-update WoW Token Price text
-    local autoUpdateTokenLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
-    autoUpdateTokenLabel:SetFontObject("GameFontNormal")
-    autoUpdateTokenLabel:SetPoint("TOPLEFT", 10, -160)
-    autoUpdateTokenLabel:SetText("Auto-update WoW Token Price:")
-
-    -- Auto-update WoW Token Price checkbox
-    local autoUpdateTokenCheckbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
-    autoUpdateTokenCheckbox:SetPoint("LEFT", autoUpdateTokenLabel, "RIGHT", 10, 0)
-    autoUpdateTokenCheckbox:SetChecked(RMTGoldPricesDB.autoUpdateTokenPrice)
-
     -- Enable Chat Feature text
     local chatFeatureLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
     chatFeatureLabel:SetFontObject("GameFontNormal")
-    chatFeatureLabel:SetPoint("TOPLEFT", 10, -190)
+    chatFeatureLabel:SetPoint("TOPLEFT", 10, -160)
     chatFeatureLabel:SetText("Enable Chat Feature:")
 
     -- Enable Chat Feature checkbox
@@ -203,7 +192,7 @@ function RMTGoldPrices.CreateOptionsWindow()
     -- Enable Vendor Feature text
     local vendorFeatureLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
     vendorFeatureLabel:SetFontObject("GameFontNormal")
-    vendorFeatureLabel:SetPoint("TOPLEFT", 10, -220)
+    vendorFeatureLabel:SetPoint("TOPLEFT", 10, -190)
     vendorFeatureLabel:SetText("Enable Vendor Feature:")
 
     -- Enable Vendor Feature checkbox
@@ -214,7 +203,7 @@ function RMTGoldPrices.CreateOptionsWindow()
     -- Enable Tooltip Feature text
     local tooltipFeatureLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
     tooltipFeatureLabel:SetFontObject("GameFontNormal")
-    tooltipFeatureLabel:SetPoint("TOPLEFT", 10, -250)
+    tooltipFeatureLabel:SetPoint("TOPLEFT", 10, -220)
     tooltipFeatureLabel:SetText("Enable Tooltip Feature:")
 
     -- Enable Tooltip Feature checkbox
@@ -225,7 +214,7 @@ function RMTGoldPrices.CreateOptionsWindow()
     -- Enable Auction House Feature text
     local auctionHouseFeatureLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
     auctionHouseFeatureLabel:SetFontObject("GameFontNormal")
-    auctionHouseFeatureLabel:SetPoint("TOPLEFT", 10, -280)
+    auctionHouseFeatureLabel:SetPoint("TOPLEFT", 10, -250)
     auctionHouseFeatureLabel:SetText("Enable Auction House Feature:")
 
     -- Enable Auction House Feature checkbox
@@ -242,22 +231,18 @@ function RMTGoldPrices.CreateOptionsWindow()
     saveButton:SetHighlightFontObject("GameFontHighlightLarge")
 
     saveButton:SetScript("OnClick", function()
-        local newTokenPrice = tonumber(tokenInput:GetText())
         local newIllegalPrice = tonumber(illegalInput:GetText())
         local newDebugEnabled = debugCheckbox:GetChecked()
         local newAuctionDebugEnabled = auctionDebugCheckbox:GetChecked()
-        local newAutoUpdateTokenPrice = autoUpdateTokenCheckbox:GetChecked()
         local newChatFeatureEnabled = chatFeatureCheckbox:GetChecked()
         local newVendorFeatureEnabled = vendorFeatureCheckbox:GetChecked()
         local newTooltipFeatureEnabled = tooltipFeatureCheckbox:GetChecked()
         local newAuctionHouseFeatureEnabled = auctionHouseFeatureCheckbox:GetChecked()
 
-        if newTokenPrice and newIllegalPrice then
-            RMTGoldPricesDB.wowTokenPrice = newTokenPrice
+        if newIllegalPrice then
             RMTGoldPricesDB.illegalGoldPrice = newIllegalPrice
             RMTGoldPricesDB.chatDebugEnabled = newDebugEnabled
             RMTGoldPricesDB.ahDebugEnabled = newAuctionDebugEnabled
-            RMTGoldPricesDB.autoUpdateTokenPrice = newAutoUpdateTokenPrice
             RMTGoldPricesDB.enableChatFeature = newChatFeatureEnabled
             RMTGoldPricesDB.enableVendorFeature = newVendorFeatureEnabled
             RMTGoldPricesDB.enableTooltipFeature = newTooltipFeatureEnabled
