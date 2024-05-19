@@ -11,8 +11,6 @@ end
 local function OnAddonLoaded(event, name)
     if name == "RMTGoldPrices" then
         InitializeDatabase()
-        -- Other initialization code here
-        print("RMTGoldPrices addon loaded. Use /rmt options to configure.")
     end
 end
 
