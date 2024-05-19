@@ -1,4 +1,48 @@
--- Function to modify item tooltips
+-- Function to add dollar values to the vendor price line
+local function AddDollarValueToVendorPrice(tooltipFrame, vendorPrice, countString)
+    if vendorPrice > 0 then
+        local goldValue = vendorPrice / 10000
+        local tokenDollarValue = (goldValue / RMTGoldPricesDB.wowTokenPrice) * 20
+        local illegalDollarValue = (goldValue / 10000) * RMTGoldPricesDB.illegalGoldPrice
+
+        local dollarText = string.format(" ($%.2f / $%.2f)", tokenDollarValue, illegalDollarValue)
+
+        -- Find the vendor price line and append the dollar value
+        for i = 1, tooltipFrame:NumLines() do
+            local leftLine = _G[tooltipFrame:GetName() .. "TextLeft" .. i]
+            local rightLine = _G[tooltipFrame:GetName() .. "TextRight" .. i]
+            if leftLine and rightLine and leftLine:GetText() and leftLine:GetText():find("Vendor") then
+                rightLine:SetText(rightLine:GetText() .. dollarText)
+                tooltipFrame:Show()
+                return
+            end
+        end
+    end
+end
+
+-- Function to add dollar values to the auction price line
+local function AddDollarValueToAuctionPrice(tooltipFrame, auctionPrice, countString, cannotAuction)
+    if auctionPrice and not cannotAuction then
+        local goldValue = auctionPrice / 10000
+        local tokenDollarValue = (goldValue / RMTGoldPricesDB.wowTokenPrice) * 20
+        local illegalDollarValue = (goldValue / 10000) * RMTGoldPricesDB.illegalGoldPrice
+
+        local dollarText = string.format(" ($%.2f / $%.2f)", tokenDollarValue, illegalDollarValue)
+
+        -- Find the auction price line and append the dollar value
+        for i = 1, tooltipFrame:NumLines() do
+            local leftLine = _G[tooltipFrame:GetName() .. "TextLeft" .. i]
+            local rightLine = _G[tooltipFrame:GetName() .. "TextRight" .. i]
+            if leftLine and rightLine and leftLine:GetText() and leftLine:GetText():find("Auction") then
+                rightLine:SetText(rightLine:GetText() .. dollarText)
+                tooltipFrame:Show()
+                return
+            end
+        end
+    end
+end
+
+-- Function to modify item tooltips for non-Auctionator case
 local function OnTooltipSetItem(tooltip, ...)
     local name, link = tooltip:GetItem()
     if link then
@@ -8,12 +52,44 @@ local function OnTooltipSetItem(tooltip, ...)
             local tokenDollarValue = (goldValue / RMTGoldPricesDB.wowTokenPrice) * 20
             local illegalDollarValue = (goldValue / 10000) * RMTGoldPricesDB.illegalGoldPrice
 
-            tooltip:AddLine(string.format("|cFFFFFFFFVendor: |cFFFFD700($%.2f / $%.2f)|r", tokenDollarValue, illegalDollarValue))
+            local dollarText = string.format("|cFFFFFFFFVendor: |cFFFFD700($%.2f / $%.2f)|r", tokenDollarValue,
+                illegalDollarValue)
+
+            -- Add the dollar text below the regular vendor price using AddLine
+            tooltip:AddLine(dollarText)
             tooltip:Show()
         end
     end
 end
 
--- Hook the tooltip to add dollar values
-GameTooltip:HookScript("OnTooltipSetItem", OnTooltipSetItem)
-ItemRefTooltip:HookScript("OnTooltipSetItem", OnTooltipSetItem)
+-- Hook into Auctionator's AddVendorTip and AddAuctionTip functions if Auctionator is loaded
+if IsAddOnLoaded("Auctionator") then
+    print("Auctionator is loaded. Hooking into Auctionator's tooltip functions.")
+
+    local originalAddVendorTip = Auctionator.Tooltip.AddVendorTip
+    Auctionator.Tooltip.AddVendorTip = function(tooltipFrame, vendorPrice, countString)
+        -- Call the original function
+        originalAddVendorTip(tooltipFrame, vendorPrice, countString)
+
+        -- Add our custom dollar value to the vendor price
+        AddDollarValueToVendorPrice(tooltipFrame, vendorPrice, countString)
+    end
+
+    local originalAddAuctionTip = Auctionator.Tooltip.AddAuctionTip
+    Auctionator.Tooltip.AddAuctionTip = function(tooltipFrame, auctionPrice, countString, cannotAuction)
+        -- Call the original function
+        originalAddAuctionTip(tooltipFrame, auctionPrice, countString, cannotAuction)
+
+        -- Add our custom dollar value to the auction price
+        AddDollarValueToAuctionPrice(tooltipFrame, auctionPrice, countString, cannotAuction)
+    end
+else
+    print("Auctionator is not loaded. Using default tooltip modification.")
+
+    -- Hook the tooltip to add dollar values for non-Auctionator case
+    GameTooltip:HookScript("OnTooltipSetItem", OnTooltipSetItem)
+    ItemRefTooltip:HookScript("OnTooltipSetItem", OnTooltipSetItem)
+end
+
+-- Debug: Print to confirm the script is loaded
+print("RMTGoldPrices: Tooltip modification script loaded.")
