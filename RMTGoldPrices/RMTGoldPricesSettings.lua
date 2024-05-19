@@ -27,8 +27,18 @@ function RMTGoldPrices.LoadSettings()
     end
 end
 
--- Load settings when the addon is loaded
-RMTGoldPrices.LoadSettings()
+-- Function to handle addon loaded event
+local function OnAddonLoaded(event, name)
+    if name == "RMTGoldPrices" then
+        -- Load settings when the addon is loaded
+        RMTGoldPrices.LoadSettings()
+    end
+end
+
+-- Register event listener for ADDON_LOADED
+local eventFrame = CreateFrame("Frame")
+eventFrame:RegisterEvent("ADDON_LOADED")
+eventFrame:SetScript("OnEvent", OnAddonLoaded)
 
 -- Function to toggle pause state
 function RMTGoldPrices.TogglePause()
