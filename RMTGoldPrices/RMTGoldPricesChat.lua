@@ -28,8 +28,9 @@ local function OnChatMessage(self, event, msg, author, ...)
         print("Original message:", msg)
     end
 
-    -- Pattern to find any item link followed by a gold amount with an optional space
+    -- Pattern to find any item link
     local itemLinkPattern = "|c%x+|Hitem:.-|h.-|h|r"
+    -- Pattern to find gold amounts (with suffixes g/G or k/K)
     local goldPattern = "(%d+[gGkK])"
 
     -- Function to append currency to gold amount
@@ -42,66 +43,115 @@ local function OnChatMessage(self, event, msg, author, ...)
     end
 
     -- Function to handle modification of message segments
-    local function modifySegment(segment)
+    local function modifySegment(segment, hasItemLink)
         local modified = false
-        local newSegment = segment:gsub("(" .. itemLinkPattern .. " ?)(%d+[gGkK])", function(itemLink, goldAmount)
-            if goldAmount then
-                if RMTGoldPricesDB.chatDebugEnabled then
-                    print("Detected item link:", itemLink)
-                    print("Detected gold amount:", goldAmount)
-                end
-                local modifiedGoldAmount = appendCurrencyToGoldAmount(goldAmount)
-                modified = true
-                return itemLink .. modifiedGoldAmount
-            end
-            return itemLink .. (goldAmount or "")
-        end)
+        local newSegment
 
-        if not modified then
-            newSegment = segment:gsub(goldPattern, function(goldAmount)
-                local pre, number, suffix, post = segment:match("(.-)(%d+)([gGkK])(.*)")
-                if pre and number and suffix then
-                    if pre == "" or pre:match("|c%x+|Hitem:.-|h.-|h|r ?$") then
+        if hasItemLink then
+            -- Allow for either a space or no space before the gold amount if there is an item link
+            newSegment = segment:gsub("(" .. itemLinkPattern .. ")(%s?)(%d+[gGkK])",
+                function(itemLink, space, goldAmount)
+                    if goldAmount then
                         if RMTGoldPricesDB.chatDebugEnabled then
-                            print("Detected gold amount directly:", goldAmount)
+                            print("Detected item link:", itemLink)
+                            print("Detected gold amount after item link:", goldAmount)
                         end
+                        local modifiedGoldAmount = appendCurrencyToGoldAmount(goldAmount)
                         modified = true
-                        return pre .. appendCurrencyToGoldAmount(goldAmount) .. post
-                    else
-                        return goldAmount
+                        return itemLink .. space .. modifiedGoldAmount
                     end
+                    return itemLink .. (goldAmount or "")
+                end)
+        else
+            -- Allow spaces before and after the gold amount if there is no item link
+            newSegment = segment:gsub("(%s)(%d+[gGkK])(%s?)", function(space, goldAmount, trailingSpace)
+                if goldAmount then
+                    if RMTGoldPricesDB.chatDebugEnabled then
+                        print("Detected standalone gold amount:", space .. goldAmount)
+                    end
+                    local modifiedGoldAmount = appendCurrencyToGoldAmount(goldAmount)
+                    modified = true
+                    return space .. modifiedGoldAmount .. trailingSpace
                 end
-                return goldAmount
+                return space .. goldAmount .. trailingSpace
             end)
+
+            -- Handle cases where gold amount is at the end of the segment without trailing spaces
+            if not modified then
+                newSegment = segment:gsub("(%d+[gGkK])$", function(goldAmount)
+                    if goldAmount then
+                        if RMTGoldPricesDB.chatDebugEnabled then
+                            print("Detected gold amount at the end of the segment:", goldAmount)
+                        end
+                        local modifiedGoldAmount = appendCurrencyToGoldAmount(goldAmount)
+                        modified = true
+                        return modifiedGoldAmount
+                    end
+                    return goldAmount
+                end)
+            end
         end
 
-        return modified, newSegment
+        if RMTGoldPricesDB.chatDebugEnabled and not modified then
+            print("No modifications made to segment:", segment)
+        end
+
+        return newSegment
     end
 
     -- Check each part for item links and gold amounts
     local newMsg = ""
     local startIndex = 1
-    local modified = false
+    local hasItemLink = msg:find(itemLinkPattern) ~= nil
+
+    if RMTGoldPricesDB.chatDebugEnabled then
+        print("Has item link:", hasItemLink)
+    end
 
     while startIndex <= #msg do
-        local segmentStart, segmentEnd, itemLink = msg:find("(" .. itemLinkPattern .. " ?)", startIndex)
+        local segmentStart, segmentEnd, itemLink = msg:find("(" .. itemLinkPattern .. ")", startIndex)
         if not segmentStart then
             local remainingSegment = msg:sub(startIndex)
-            local segmentModified, newSegment = modifySegment(remainingSegment)
-            newMsg = newMsg .. newSegment
-            modified = modified or segmentModified
+            if RMTGoldPricesDB.chatDebugEnabled then
+                print("Remaining segment before modification:", remainingSegment)
+            end
+            newMsg = newMsg .. modifySegment(remainingSegment, hasItemLink)
             break
         else
             local segmentBefore = msg:sub(startIndex, segmentStart - 1)
-            local segmentModified, newSegment = modifySegment(segmentBefore)
-            newMsg = newMsg .. newSegment .. itemLink
-            modified = modified or segmentModified
-            startIndex = segmentEnd + 1
+            if RMTGoldPricesDB.chatDebugEnabled then
+                print("Segment before item link:", segmentBefore)
+                print("Detected item link:", itemLink)
+            end
+            newMsg = newMsg .. modifySegment(segmentBefore, hasItemLink) .. itemLink
+
+            -- Check for gold amount right after the item link with or without space
+            local afterItemLink = msg:sub(segmentEnd + 1)
+            local goldAmountWithSpace = afterItemLink:match("^%s(%d+[gGkK])")
+            local goldAmountNoSpace = afterItemLink:match("^(%d+[gGkK])")
+
+            if goldAmountWithSpace then
+                if RMTGoldPricesDB.chatDebugEnabled then
+                    print("Detected gold amount immediately after item link with space:", goldAmountWithSpace)
+                end
+                local modifiedGoldAmount = appendCurrencyToGoldAmount(goldAmountWithSpace)
+                newMsg = newMsg .. " " .. modifiedGoldAmount
+                startIndex = segmentEnd + #goldAmountWithSpace + 2
+            elseif goldAmountNoSpace then
+                if RMTGoldPricesDB.chatDebugEnabled then
+                    print("Detected gold amount immediately after item link without space:", goldAmountNoSpace)
+                end
+                local modifiedGoldAmount = appendCurrencyToGoldAmount(goldAmountNoSpace)
+                newMsg = newMsg .. modifiedGoldAmount
+                startIndex = segmentEnd + #goldAmountNoSpace + 1
+            else
+                startIndex = segmentEnd + 1
+            end
         end
     end
 
     -- Return the modified message if it was changed
-    if modified then
+    if newMsg ~= msg then
         -- Debug: print the new message to the console
         if RMTGoldPricesDB.chatDebugEnabled then
             print("Modified message:", newMsg)
