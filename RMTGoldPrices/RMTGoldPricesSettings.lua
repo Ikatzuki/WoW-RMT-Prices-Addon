@@ -252,6 +252,8 @@ function RMTGoldPrices.CreateOptionsWindow()
         local newTooltipFeatureEnabled = tooltipFeatureCheckbox:GetChecked()
         local newAuctionHouseFeatureEnabled = auctionHouseFeatureCheckbox:GetChecked()
 
+        local vendorFeatureChanged = RMTGoldPricesDB.enableVendorFeature ~= newVendorFeatureEnabled
+
         if newTokenPrice and newIllegalPrice then
             RMTGoldPricesDB.wowTokenPrice = newTokenPrice
             RMTGoldPricesDB.illegalGoldPrice = newIllegalPrice
@@ -264,6 +266,11 @@ function RMTGoldPrices.CreateOptionsWindow()
             RMTGoldPricesDB.enableAuctionHouseFeature = newAuctionHouseFeatureEnabled
 
             print("RMTGoldPrices: Settings updated.")
+
+            if vendorFeatureChanged then
+                print("RMTGoldPrices: Vendor feature setting changed. Reloading UI...")
+                ReloadUI()
+            end
         else
             print("RMTGoldPrices: Invalid input. Please enter valid numbers.")
         end

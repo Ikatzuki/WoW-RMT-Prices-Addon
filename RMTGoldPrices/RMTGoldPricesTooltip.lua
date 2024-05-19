@@ -1,5 +1,8 @@
 -- Function to add dollar values to the vendor price line
 local function AddDollarValueToVendorPrice(tooltipFrame, vendorPrice, countString)
+    if not RMTGoldPricesDB.enableTooltipFeature then
+        return
+    end
     if vendorPrice > 0 then
         local goldValue = vendorPrice / 10000
         local tokenDollarValue = (goldValue / RMTGoldPricesDB.wowTokenPrice) * 20
@@ -22,6 +25,9 @@ end
 
 -- Function to add dollar values to the auction price line
 local function AddDollarValueToAuctionPrice(tooltipFrame, auctionPrice, countString, cannotAuction)
+    if not RMTGoldPricesDB.enableTooltipFeature then
+        return
+    end
     if auctionPrice and not cannotAuction then
         local goldValue = auctionPrice / 10000
         local tokenDollarValue = (goldValue / RMTGoldPricesDB.wowTokenPrice) * 20
@@ -44,6 +50,9 @@ end
 
 -- Function to modify item tooltips for non-Auctionator case
 local function OnTooltipSetItem(tooltip, ...)
+    if not RMTGoldPricesDB.enableTooltipFeature then
+        return
+    end
     local name, link = tooltip:GetItem()
     if link then
         local _, _, _, _, _, _, _, _, _, _, sellPrice = GetItemInfo(link)
@@ -62,12 +71,24 @@ local function OnTooltipSetItem(tooltip, ...)
     end
 end
 
+-- Ensure the database is initialized
+if not RMTGoldPricesDB then
+    return
+end
+
+-- Check if the tooltip feature is enabled
+if not RMTGoldPricesDB.enableTooltipFeature then
+    return
+end
+
 -- Hook into Auctionator's AddVendorTip and AddAuctionTip functions if Auctionator is loaded
 if IsAddOnLoaded("Auctionator") then
-    print("Auctionator is loaded. Hooking into Auctionator's tooltip functions.")
 
     local originalAddVendorTip = Auctionator.Tooltip.AddVendorTip
     Auctionator.Tooltip.AddVendorTip = function(tooltipFrame, vendorPrice, countString)
+        if not RMTGoldPricesDB.enableTooltipFeature then
+            return
+        end
         -- Call the original function
         originalAddVendorTip(tooltipFrame, vendorPrice, countString)
 
@@ -77,6 +98,9 @@ if IsAddOnLoaded("Auctionator") then
 
     local originalAddAuctionTip = Auctionator.Tooltip.AddAuctionTip
     Auctionator.Tooltip.AddAuctionTip = function(tooltipFrame, auctionPrice, countString, cannotAuction)
+        if not RMTGoldPricesDB.enableTooltipFeature then
+            return
+        end
         -- Call the original function
         originalAddAuctionTip(tooltipFrame, auctionPrice, countString, cannotAuction)
 
@@ -84,12 +108,8 @@ if IsAddOnLoaded("Auctionator") then
         AddDollarValueToAuctionPrice(tooltipFrame, auctionPrice, countString, cannotAuction)
     end
 else
-    print("Auctionator is not loaded. Using default tooltip modification.")
 
     -- Hook the tooltip to add dollar values for non-Auctionator case
     GameTooltip:HookScript("OnTooltipSetItem", OnTooltipSetItem)
     ItemRefTooltip:HookScript("OnTooltipSetItem", OnTooltipSetItem)
 end
-
--- Debug: Print to confirm the script is loaded
-print("RMTGoldPrices: Tooltip modification script loaded.")

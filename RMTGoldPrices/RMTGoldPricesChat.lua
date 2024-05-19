@@ -4,7 +4,7 @@ local processedMessages = {}
 -- Function to handle chat messages
 local function OnChatMessage(self, event, msg, author, ...)
     if not RMTGoldPricesDB.enableChatFeature then
-        return false
+        return
     end
 
     -- Use the unique ID for each message to avoid duplicates
