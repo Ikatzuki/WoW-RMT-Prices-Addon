@@ -36,6 +36,10 @@ end
 
 -- Function to handle merchant show event
 local function OnMerchantShow()
+    if not RMTGoldPricesDB.enableVendorFeature then
+        return false
+    end
+
     OnMerchantFrameUpdate()
 end
 
