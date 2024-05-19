@@ -9,14 +9,7 @@ end
 -- Function to update the buyout price display with the dollar value
 local function UpdateBuyoutPriceDisplay(buttonIndex)
     if not RMTGoldPricesDB.enableAuctionHouseFeature then
-        if RMTGoldPricesDB.ahDebugEnabled then
-            print("Auction House feature is disabled. Skipping UpdateBuyoutPriceDisplay.")
-        end
         return
-    end
-
-    if RMTGoldPricesDB.ahDebugEnabled then
-        print("UpdateBuyoutPriceDisplay called for buttonIndex:", buttonIndex)
     end
 
     local button = _G["BrowseButton" .. buttonIndex]
@@ -45,14 +38,7 @@ end
 -- Hook into the Auction House frame
 local function HookAuctionHouse()
     if not RMTGoldPricesDB.enableAuctionHouseFeature then
-        if RMTGoldPricesDB.ahDebugEnabled then
-            print("Auction House feature is disabled. Skipping HookAuctionHouse.")
-        end
         return
-    end
-
-    if RMTGoldPricesDB.ahDebugEnabled then
-        print("HookAuctionHouse called")
     end
 
     -- Hook into the click event for auction items
@@ -73,14 +59,7 @@ end
 local function OnEvent(self, event, ...)
     if event == "AUCTION_HOUSE_SHOW" then
         if not RMTGoldPricesDB.enableAuctionHouseFeature then
-            if RMTGoldPricesDB.ahDebugEnabled then
-                print("Auction House feature is disabled. Skipping OnEvent.")
-            end
             return
-        end
-
-        if RMTGoldPricesDB.ahDebugEnabled then
-            print("AUCTION_HOUSE_SHOW event received")
         end
 
         ClearBuyoutPriceDisplay() -- Clear the dollar value text when the Auction House is opened
@@ -90,7 +69,6 @@ end
 
 -- Ensure the database is initialized
 if not RMTGoldPricesDB then
-    print("RMTGoldPricesDB is not initialized. Aborting auction house modifications.") -- Debug
     return
 end
 
@@ -98,8 +76,3 @@ end
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("AUCTION_HOUSE_SHOW")
 eventFrame:SetScript("OnEvent", OnEvent)
-
--- Print to confirm the script is loaded
-if RMTGoldPricesDB.ahDebugEnabled then
-    print("RMTGoldPrices Auction House addon loaded.")
-end
