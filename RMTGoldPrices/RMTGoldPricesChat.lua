@@ -24,7 +24,7 @@ local function OnChatMessage(self, event, msg, author, ...)
     end)
 
     -- Debug: print the original message to the console
-    if RMTGoldPricesDB.debugEnabled then
+    if RMTGoldPricesDB.chatDebugEnabled then
         print("Original message:", msg)
     end
 
@@ -45,7 +45,7 @@ local function OnChatMessage(self, event, msg, author, ...)
     local modified = false
     local newMsg = msg:gsub("(" .. itemLinkPattern .. ")( ?%d+[gGkK])", function(itemLink, goldAmount)
         if goldAmount then
-            if RMTGoldPricesDB.debugEnabled then
+            if RMTGoldPricesDB.chatDebugEnabled then
                 print("Detected item link:", itemLink)
                 print("Detected gold amount:", goldAmount)
             end
@@ -62,7 +62,7 @@ local function OnChatMessage(self, event, msg, author, ...)
             local pre, number, suffix, post = msg:match("(.-)(%d+)([gGkK])(.*)")
             if pre and number and suffix then
                 if pre == "" or pre:match("|c%x+|Hitem:.-|h.-|h|r$") then
-                    if RMTGoldPricesDB.debugEnabled then
+                    if RMTGoldPricesDB.chatDebugEnabled then
                         print("Detected gold amount directly:", goldAmount)
                     end
                     modified = true
@@ -78,13 +78,13 @@ local function OnChatMessage(self, event, msg, author, ...)
     -- Return the modified message if it was changed
     if modified then
         -- Debug: print the new message to the console
-        if RMTGoldPricesDB.debugEnabled then
+        if RMTGoldPricesDB.chatDebugEnabled then
             print("Modified message:", newMsg)
         end
 
         return false, newMsg, author, ...
     else
-        if RMTGoldPricesDB.debugEnabled then
+        if RMTGoldPricesDB.chatDebugEnabled then
             print("Pattern not found or no modifications needed.")
         end
     end

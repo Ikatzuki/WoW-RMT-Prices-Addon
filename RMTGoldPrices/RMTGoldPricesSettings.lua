@@ -5,7 +5,8 @@ RMTGoldPrices = {}
 RMTGoldPrices.defaultSettings = {
     wowTokenPrice = 6138, -- Default WoW Token price in gold
     illegalGoldPrice = 15, -- Default illegal gold price for $20
-    debugEnabled = false, -- Default debug state
+    chatDebugEnabled = false, -- Default chat debug state
+    ahDebugEnabled = false, -- Default AH debug state
     autoUpdateTokenPrice = true -- Default auto-update WoW token price state
 }
 
@@ -46,25 +47,43 @@ end
 function RMTGoldPrices.FetchWowTokenPrice()
     local wowTokenButton = _G["AuctionFilterButton13"]
     if wowTokenButton then
+
+        -- Click the WoW Token button to update the price
         wowTokenButton:Click()
+        wowTokenButton:Click()
+
         C_Timer.After(1, function()
-            local tokenPriceFrame = BrowseWowTokenResults.BuyoutPrice
+            local tokenPriceFrame = BrowseWowTokenResults and BrowseWowTokenResults.BuyoutPrice
             if tokenPriceFrame then
                 local tokenPriceText = tokenPriceFrame:GetText()
-                local tokenPriceCleanText = tokenPriceText:gsub(",", "")
-                local tokenPrice = tonumber(tokenPriceCleanText:match("%d+"))
-                if tokenPrice then
-                    RMTGoldPricesDB.wowTokenPrice = tokenPrice
-                    print("RMTGoldPrices: WoW Token price updated to " .. tokenPrice .. " gold.")
+                if tokenPriceText then
+                    local tokenPriceCleanText = tokenPriceText:gsub(",", "")
+                    local tokenPrice = tonumber(tokenPriceCleanText:match("%d+"))
+                    if tokenPrice then
+                        RMTGoldPricesDB.wowTokenPrice = tokenPrice
+                        if RMTGoldPricesDB.ahDebugEnabled then
+                            print("RMTGoldPrices: WoW Token price updated to " .. tokenPrice .. " gold.")
+                        end
+                    else
+                        if RMTGoldPricesDB.ahDebugEnabled then
+                            print("RMTGoldPrices: Failed to extract token price from text.")
+                        end
+                    end
                 else
-                    print("RMTGoldPrices: Failed to extract token price from text.")
+                    if RMTGoldPricesDB.ahDebugEnabled then
+                        print("RMTGoldPrices: Token price text not found.")
+                    end
                 end
             else
-                print("RMTGoldPrices: BuyoutPrice frame not found.")
+                if RMTGoldPricesDB.ahDebugEnabled then
+                    print("RMTGoldPrices: BuyoutPrice frame not found.")
+                end
             end
         end)
     else
-        print("RMTGoldPrices: WoW Token button not found.")
+        if RMTGoldPricesDB.ahDebugEnabled then
+            print("RMTGoldPrices: WoW Token button not found.")
+        end
     end
 end
 
@@ -76,7 +95,7 @@ end
 -- Create the options window
 function RMTGoldPrices.CreateOptionsWindow()
     local optionsFrame = CreateFrame("Frame", "RMTGoldPricesOptionsFrame", UIParent, "BasicFrameTemplateWithInset")
-    optionsFrame:SetSize(300, 200) -- width, height
+    optionsFrame:SetSize(300, 230) -- Adjust height to fit the new checkbox
     optionsFrame:SetPoint("CENTER") -- position at the center of the screen
     optionsFrame:SetMovable(true)
     optionsFrame:EnableMouse(true)
@@ -121,21 +140,32 @@ function RMTGoldPrices.CreateOptionsWindow()
     illegalInput:SetAutoFocus(false)
     illegalInput:SetText(tostring(RMTGoldPricesDB.illegalGoldPrice))
 
-    -- Debug Enabled text
-    local debugLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
-    debugLabel:SetFontObject("GameFontNormal")
-    debugLabel:SetPoint("TOPLEFT", 10, -100)
-    debugLabel:SetText("Enable Debug:")
+    -- Chat Debug Enabled text
+    local chatDebugLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
+    chatDebugLabel:SetFontObject("GameFontNormal")
+    chatDebugLabel:SetPoint("TOPLEFT", 10, -100)
+    chatDebugLabel:SetText("Enable Chat Debug Messages:")
 
-    -- Debug Enabled checkbox
-    local debugCheckbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
-    debugCheckbox:SetPoint("LEFT", debugLabel, "RIGHT", 10, 0)
-    debugCheckbox:SetChecked(RMTGoldPricesDB.debugEnabled)
+    -- Chat Debug Enabled checkbox
+    local chatDebugCheckbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
+    chatDebugCheckbox:SetPoint("LEFT", chatDebugLabel, "RIGHT", 10, 0)
+    chatDebugCheckbox:SetChecked(RMTGoldPricesDB.chatDebugEnabled)
+
+    -- AH Debug Enabled text
+    local ahDebugLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
+    ahDebugLabel:SetFontObject("GameFontNormal")
+    ahDebugLabel:SetPoint("TOPLEFT", 10, -130)
+    ahDebugLabel:SetText("Enable AH Debug Messages:")
+
+    -- AH Debug Enabled checkbox
+    local ahDebugCheckbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
+    ahDebugCheckbox:SetPoint("LEFT", ahDebugLabel, "RIGHT", 10, 0)
+    ahDebugCheckbox:SetChecked(RMTGoldPricesDB.ahDebugEnabled)
 
     -- Auto-update WoW Token Price text
     local autoUpdateTokenLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
     autoUpdateTokenLabel:SetFontObject("GameFontNormal")
-    autoUpdateTokenLabel:SetPoint("TOPLEFT", 10, -130)
+    autoUpdateTokenLabel:SetPoint("TOPLEFT", 10, -160)
     autoUpdateTokenLabel:SetText("Auto-update WoW Token Price:")
 
     -- Auto-update WoW Token Price checkbox
@@ -154,18 +184,21 @@ function RMTGoldPrices.CreateOptionsWindow()
     saveButton:SetScript("OnClick", function()
         local newTokenPrice = tonumber(tokenInput:GetText())
         local newIllegalPrice = tonumber(illegalInput:GetText())
-        local newDebugEnabled = debugCheckbox:GetChecked()
+        local newChatDebugEnabled = chatDebugCheckbox:GetChecked()
+        local newAHDebugEnabled = ahDebugCheckbox:GetChecked()
         local newAutoUpdateTokenPrice = autoUpdateTokenCheckbox:GetChecked()
 
         if newTokenPrice and newIllegalPrice then
             RMTGoldPricesDB.wowTokenPrice = newTokenPrice
             RMTGoldPricesDB.illegalGoldPrice = newIllegalPrice
-            RMTGoldPricesDB.debugEnabled = newDebugEnabled
+            RMTGoldPricesDB.chatDebugEnabled = newChatDebugEnabled
+            RMTGoldPricesDB.ahDebugEnabled = newAHDebugEnabled
             RMTGoldPricesDB.autoUpdateTokenPrice = newAutoUpdateTokenPrice
             print("RMTGoldPrices: Prices updated.")
             print("WoW Token Price: " .. RMTGoldPricesDB.wowTokenPrice)
             print("Price per 10k Illegal Gold: $" .. RMTGoldPricesDB.illegalGoldPrice)
-            print("Debug enabled: " .. tostring(RMTGoldPricesDB.debugEnabled))
+            print("Chat Debug enabled: " .. tostring(RMTGoldPricesDB.chatDebugEnabled))
+            print("AH Debug enabled: " .. tostring(RMTGoldPricesDB.ahDebugEnabled))
             print("Auto-update WoW Token Price: " .. tostring(RMTGoldPricesDB.autoUpdateTokenPrice))
         else
             print("RMTGoldPrices: Invalid input. Please enter valid numbers.")
