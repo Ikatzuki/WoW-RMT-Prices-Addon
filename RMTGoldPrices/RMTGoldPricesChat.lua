@@ -27,17 +27,26 @@ local function OnChatMessage(self, event, msg, author, ...)
     -- ensuring no letters before the number
     local pattern = "(%f[%a%d]%d+[gGkK]%f[%A%d])"
 
+    -- Debug: print the original message to the console
+    if RMTGoldPricesDB.debugEnabled then
+        print("Original message:", msg)
+    end
+
     -- Check if the message contains the pattern
     local containsPattern = msg:find(pattern)
 
     if containsPattern then
+        if RMTGoldPricesDB.debugEnabled then
+            print("Pattern '%d+[gGkK]' found in message.")
+        end
+
         -- Replace matches in the message
         local success, newMsg = pcall(function()
             return msg:gsub(pattern, function(numberWithSuffix)
                 local pre, number, suffix, post = msg:match("(.-)(%d+)([gGkK])(%f[%A%d])")
                 -- Ensure there are no letters immediately before the number + g/k
                 if pre and not pre:match("%a$") then
-                    return pre .. AppendCurrency(number, suffix, post)
+                    return pre .. RMTGoldPrices.AppendCurrency(number, suffix, post)
                 else
                     return numberWithSuffix
                 end
@@ -45,11 +54,23 @@ local function OnChatMessage(self, event, msg, author, ...)
         end)
 
         if success then
+            -- Debug: print the new message to the console
+            if RMTGoldPricesDB.debugEnabled then
+                print("Modified message:", newMsg)
+            end
+
             -- Return the modified message
             return false, newMsg, author, ...
         else
             -- In case of error, return the original message unmodified
+            if RMTGoldPricesDB.debugEnabled then
+                print("Error processing message:", newMsg)
+            end
             return false, msg, author, ...
+        end
+    else
+        if RMTGoldPricesDB.debugEnabled then
+            print("Pattern '%d+[gGkK]' not found in message.")
         end
     end
 
@@ -58,15 +79,20 @@ local function OnChatMessage(self, event, msg, author, ...)
 end
 
 -- Function to append the equivalent dollar value
-local function AppendCurrency(number, suffix, post)
+function RMTGoldPrices.AppendCurrency(number, suffix, post)
     local num = tonumber(number)
-    local dollarValue
+    local tokenDollarValue, illegalDollarValue
+
     if suffix == "g" or suffix == "G" then
-        dollarValue = (num / 10000) * RMTGoldPricesDB.wowTokenPrice / 10000 * 20
+        tokenDollarValue = (num / RMTGoldPricesDB.wowTokenPrice) * 20
+        illegalDollarValue = (num / 10000) * RMTGoldPricesDB.illegalGoldPrice
     elseif suffix == "k" or suffix == "K" then
-        dollarValue = num * RMTGoldPricesDB.illegalGoldPrice / 10
+        tokenDollarValue = (num * 1000 / RMTGoldPricesDB.wowTokenPrice) * 20
+        illegalDollarValue = (num * RMTGoldPricesDB.illegalGoldPrice / 10)
     end
-    return number .. suffix .. string.format(" ($%.2f / $%.2f)", dollarValue, dollarValue) .. post
+
+    return number .. suffix .. string.format(" |cFFFFD700($%.2f / $%.2f)|r", tokenDollarValue, illegalDollarValue) ..
+               post
 end
 
 -- Add the message filter to modify chat messages

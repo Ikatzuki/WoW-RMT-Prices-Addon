@@ -22,23 +22,6 @@ function RMTGoldPrices.LoadSettings()
     end
 end
 
--- Function to append the equivalent dollar values
-function RMTGoldPrices.AppendCurrency(number, suffix, post)
-    local num = tonumber(number)
-    local tokenDollarValue, illegalDollarValue
-
-    if suffix == "g" or suffix == "G" then
-        tokenDollarValue = (num / RMTGoldPricesDB.wowTokenPrice) * 20
-        illegalDollarValue = (num / 10000) * RMTGoldPricesDB.illegalGoldPrice
-    elseif suffix == "k" or suffix == "K" then
-        tokenDollarValue = (num * 1000 / RMTGoldPricesDB.wowTokenPrice) * 20
-        illegalDollarValue = (num * RMTGoldPricesDB.illegalGoldPrice / 10)
-    end
-
-    return number .. suffix .. string.format(" |cFFFFD700($%.2f / $%.2f)|r", tokenDollarValue, illegalDollarValue) ..
-               post
-end
-
 -- Function to toggle pause state
 function RMTGoldPrices.TogglePause()
     RMTGoldPrices.isPaused = not RMTGoldPrices.isPaused
