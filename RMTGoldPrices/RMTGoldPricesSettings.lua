@@ -252,8 +252,6 @@ function RMTGoldPrices.CreateOptionsWindow()
         local newTooltipFeatureEnabled = tooltipFeatureCheckbox:GetChecked()
         local newAuctionHouseFeatureEnabled = auctionHouseFeatureCheckbox:GetChecked()
 
-        local vendorFeatureChanged = RMTGoldPricesDB.enableVendorFeature ~= newVendorFeatureEnabled
-
         if newTokenPrice and newIllegalPrice then
             RMTGoldPricesDB.wowTokenPrice = newTokenPrice
             RMTGoldPricesDB.illegalGoldPrice = newIllegalPrice
@@ -266,16 +264,16 @@ function RMTGoldPrices.CreateOptionsWindow()
             RMTGoldPricesDB.enableAuctionHouseFeature = newAuctionHouseFeatureEnabled
 
             print("RMTGoldPrices: Settings updated.")
-
-            if vendorFeatureChanged then
-                print("RMTGoldPrices: Vendor feature setting changed. Reloading UI...")
-                ReloadUI()
-            end
         else
             print("RMTGoldPrices: Invalid input. Please enter valid numbers.")
         end
 
-        optionsFrame:Hide()
+        -- Check if vendor feature setting was changed
+        if newVendorFeatureEnabled ~= RMTGoldPricesDB.enableVendorFeature then
+            ReloadUI() -- Reload the UI to apply the changes
+        else
+            optionsFrame:Hide()
+        end
     end)
 end
 
@@ -296,3 +294,6 @@ SlashCmdList["RGP"] = function(msg)
             "RMTGoldPrices: Unknown command. Use '/rgp options' to open the options window, '/rgp pause' to toggle pause, or '/rgp resume' to resume.")
     end
 end
+
+-- Ensure settings are loaded immediately
+RMTGoldPrices.LoadSettings()

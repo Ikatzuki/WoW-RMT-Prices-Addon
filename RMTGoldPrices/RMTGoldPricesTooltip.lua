@@ -1,8 +1,5 @@
 -- Function to add dollar values to the vendor price line
 local function AddDollarValueToVendorPrice(tooltipFrame, vendorPrice, countString)
-    if not RMTGoldPricesDB.enableTooltipFeature then
-        return
-    end
     if vendorPrice > 0 then
         local goldValue = vendorPrice / 10000
         local tokenDollarValue = (goldValue / RMTGoldPricesDB.wowTokenPrice) * 20
@@ -25,9 +22,6 @@ end
 
 -- Function to add dollar values to the auction price line
 local function AddDollarValueToAuctionPrice(tooltipFrame, auctionPrice, countString, cannotAuction)
-    if not RMTGoldPricesDB.enableTooltipFeature then
-        return
-    end
     if auctionPrice and not cannotAuction then
         local goldValue = auctionPrice / 10000
         local tokenDollarValue = (goldValue / RMTGoldPricesDB.wowTokenPrice) * 20
@@ -50,9 +44,6 @@ end
 
 -- Function to modify item tooltips for non-Auctionator case
 local function OnTooltipSetItem(tooltip, ...)
-    if not RMTGoldPricesDB.enableTooltipFeature then
-        return
-    end
     local name, link = tooltip:GetItem()
     if link then
         local _, _, _, _, _, _, _, _, _, _, sellPrice = GetItemInfo(link)
@@ -69,16 +60,6 @@ local function OnTooltipSetItem(tooltip, ...)
             tooltip:Show()
         end
     end
-end
-
--- Ensure the database is initialized
-if not RMTGoldPricesDB then
-    return
-end
-
--- Check if the tooltip feature is enabled
-if not RMTGoldPricesDB.enableTooltipFeature then
-    return
 end
 
 -- Hook into Auctionator's AddVendorTip and AddAuctionTip functions if Auctionator is loaded

@@ -3,7 +3,7 @@ local processedMessages = {}
 
 -- Function to handle chat messages
 local function OnChatMessage(self, event, msg, author, ...)
-    if not RMTGoldPricesDB.enableChatFeature then
+    if not RMTGoldPricesDB or not RMTGoldPricesDB.enableChatFeature then
         return
     end
 
