@@ -2,9 +2,8 @@
 local function AppendDollarValueToBuyoutPrice(buyoutPrice)
     local goldValue = buyoutPrice / 10000
     local tokenDollarValue = (goldValue / RMTGoldPricesDB.wowTokenPrice) * 20
-    local illegalDollarValue = (goldValue / 10000) * RMTGoldPricesDB.illegalGoldPrice
 
-    return string.format(" |cFFFFD700($%.2f / $%.2f)|r", tokenDollarValue, illegalDollarValue)
+    return string.format(" |cFFFFD700($%.2f)|r", tokenDollarValue)
 end
 
 -- Function to update the buyout price display with the dollar value

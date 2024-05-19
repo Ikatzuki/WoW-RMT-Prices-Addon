@@ -3,8 +3,7 @@ RMTGoldPrices = {}
 
 -- Default values for saved variables
 RMTGoldPrices.defaultSettings = {
-    wowTokenPrice = 6138, -- Default WoW Token price in gold
-    illegalGoldPrice = 15, -- Default illegal gold price for $20
+    wowTokenPrice = 1, -- Default WoW Token price in gold
     chatDebugEnabled = false, -- Default chat debug state
     ahDebugEnabled = false, -- Default AH debug state
     enableChatFeature = true, -- Enable Chat feature by default
@@ -143,19 +142,6 @@ function RMTGoldPrices.CreateOptionsWindow()
         end
     end)
 
-    -- Illegal Gold Price text
-    local illegalLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
-    illegalLabel:SetFontObject("GameFontNormal")
-    illegalLabel:SetPoint("TOPLEFT", 10, -70)
-    illegalLabel:SetText("Price per 10k Illegal Gold ($):")
-
-    -- Illegal Gold Price input box
-    local illegalInput = CreateFrame("EditBox", nil, optionsFrame, "InputBoxTemplate")
-    illegalInput:SetSize(50, 20) -- width, height
-    illegalInput:SetPoint("LEFT", illegalLabel, "RIGHT", 10, 0)
-    illegalInput:SetAutoFocus(false)
-    illegalInput:SetText(tostring(RMTGoldPricesDB.illegalGoldPrice))
-
     -- Debug Enabled text
     local debugLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
     debugLabel:SetFontObject("GameFontNormal")
@@ -231,7 +217,6 @@ function RMTGoldPrices.CreateOptionsWindow()
     saveButton:SetHighlightFontObject("GameFontHighlightLarge")
 
     saveButton:SetScript("OnClick", function()
-        local newIllegalPrice = tonumber(illegalInput:GetText())
         local newDebugEnabled = debugCheckbox:GetChecked()
         local newAuctionDebugEnabled = auctionDebugCheckbox:GetChecked()
         local newChatFeatureEnabled = chatFeatureCheckbox:GetChecked()
@@ -239,19 +224,12 @@ function RMTGoldPrices.CreateOptionsWindow()
         local newTooltipFeatureEnabled = tooltipFeatureCheckbox:GetChecked()
         local newAuctionHouseFeatureEnabled = auctionHouseFeatureCheckbox:GetChecked()
 
-        if newIllegalPrice then
-            RMTGoldPricesDB.illegalGoldPrice = newIllegalPrice
-            RMTGoldPricesDB.chatDebugEnabled = newDebugEnabled
-            RMTGoldPricesDB.ahDebugEnabled = newAuctionDebugEnabled
-            RMTGoldPricesDB.enableChatFeature = newChatFeatureEnabled
-            RMTGoldPricesDB.enableVendorFeature = newVendorFeatureEnabled
-            RMTGoldPricesDB.enableTooltipFeature = newTooltipFeatureEnabled
-            RMTGoldPricesDB.enableAuctionHouseFeature = newAuctionHouseFeatureEnabled
-
-            print("RMTGoldPrices: Settings updated.")
-        else
-            print("RMTGoldPrices: Invalid input. Please enter valid numbers.")
-        end
+        RMTGoldPricesDB.chatDebugEnabled = newDebugEnabled
+        RMTGoldPricesDB.ahDebugEnabled = newAuctionDebugEnabled
+        RMTGoldPricesDB.enableChatFeature = newChatFeatureEnabled
+        RMTGoldPricesDB.enableVendorFeature = newVendorFeatureEnabled
+        RMTGoldPricesDB.enableTooltipFeature = newTooltipFeatureEnabled
+        RMTGoldPricesDB.enableAuctionHouseFeature = newAuctionHouseFeatureEnabled
 
         -- Check if vendor feature setting was changed
         if newVendorFeatureEnabled ~= RMTGoldPricesDB.enableVendorFeature then

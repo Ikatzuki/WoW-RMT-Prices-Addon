@@ -3,9 +3,8 @@ local function AddDollarValueToVendorPrice(tooltipFrame, vendorPrice, countStrin
     if vendorPrice > 0 then
         local goldValue = vendorPrice / 10000
         local tokenDollarValue = (goldValue / RMTGoldPricesDB.wowTokenPrice) * 20
-        local illegalDollarValue = (goldValue / 10000) * RMTGoldPricesDB.illegalGoldPrice
 
-        local dollarText = string.format(" ($%.2f / $%.2f)", tokenDollarValue, illegalDollarValue)
+        local dollarText = string.format(" ($%.2f)", tokenDollarValue)
 
         -- Find the vendor price line and append the dollar value
         for i = 1, tooltipFrame:NumLines() do
@@ -25,9 +24,8 @@ local function AddDollarValueToAuctionPrice(tooltipFrame, auctionPrice, countStr
     if auctionPrice and not cannotAuction then
         local goldValue = auctionPrice / 10000
         local tokenDollarValue = (goldValue / RMTGoldPricesDB.wowTokenPrice) * 20
-        local illegalDollarValue = (goldValue / 10000) * RMTGoldPricesDB.illegalGoldPrice
 
-        local dollarText = string.format(" ($%.2f / $%.2f)", tokenDollarValue, illegalDollarValue)
+        local dollarText = string.format(" ($%.2f)", tokenDollarValue)
 
         -- Find the auction price line and append the dollar value
         for i = 1, tooltipFrame:NumLines() do
@@ -50,10 +48,8 @@ local function OnTooltipSetItem(tooltip, ...)
         if sellPrice and sellPrice > 0 then
             local goldValue = sellPrice / 10000
             local tokenDollarValue = (goldValue / RMTGoldPricesDB.wowTokenPrice) * 20
-            local illegalDollarValue = (goldValue / 10000) * RMTGoldPricesDB.illegalGoldPrice
 
-            local dollarText = string.format("|cFFFFFFFFVendor: |cFFFFD700($%.2f / $%.2f)|r", tokenDollarValue,
-                illegalDollarValue)
+            local dollarText = string.format("|cFFFFFFFFVendor: |cFFFFD700($%.2f)|r", tokenDollarValue)
 
             -- Add the dollar text below the regular vendor price using AddLine
             tooltip:AddLine(dollarText)
