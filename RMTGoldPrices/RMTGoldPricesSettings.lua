@@ -5,7 +5,8 @@ RMTGoldPrices = {}
 RMTGoldPrices.defaultSettings = {
     wowTokenPrice = 6138, -- Default WoW Token price in gold
     illegalGoldPrice = 15, -- Default illegal gold price for $20
-    debugEnabled = false -- Default debug state
+    debugEnabled = false, -- Default debug state
+    autoUpdateTokenPrice = true -- Default auto-update WoW token price state
 }
 
 -- Function to load saved variables
@@ -58,10 +59,41 @@ function RMTGoldPrices.ResumeAddon()
     end
 end
 
+-- Function to fetch WoW Token price
+function RMTGoldPrices.FetchWowTokenPrice()
+    local wowTokenButton = _G["AuctionFilterButton13"]
+    if wowTokenButton then
+        wowTokenButton:Click()
+        C_Timer.After(1, function()
+            local tokenPriceFrame = BrowseWowTokenResults.BuyoutPrice
+            if tokenPriceFrame then
+                local tokenPriceText = tokenPriceFrame:GetText()
+                local tokenPriceCleanText = tokenPriceText:gsub(",", "")
+                local tokenPrice = tonumber(tokenPriceCleanText:match("%d+"))
+                if tokenPrice then
+                    RMTGoldPricesDB.wowTokenPrice = tokenPrice
+                    print("RMTGoldPrices: WoW Token price updated to " .. tokenPrice .. " gold.")
+                else
+                    print("RMTGoldPrices: Failed to extract token price from text.")
+                end
+            else
+                print("RMTGoldPrices: BuyoutPrice frame not found.")
+            end
+        end)
+    else
+        print("RMTGoldPrices: WoW Token button not found.")
+    end
+end
+
+-- Function to handle Auction House open event
+function RMTGoldPrices.OnAuctionHouseShow()
+    RMTGoldPrices.FetchWowTokenPrice()
+end
+
 -- Create the options window
 function RMTGoldPrices.CreateOptionsWindow()
     local optionsFrame = CreateFrame("Frame", "RMTGoldPricesOptionsFrame", UIParent, "BasicFrameTemplateWithInset")
-    optionsFrame:SetSize(300, 170) -- width, height
+    optionsFrame:SetSize(300, 200) -- width, height
     optionsFrame:SetPoint("CENTER") -- position at the center of the screen
     optionsFrame:SetMovable(true)
     optionsFrame:EnableMouse(true)
@@ -117,6 +149,17 @@ function RMTGoldPrices.CreateOptionsWindow()
     debugCheckbox:SetPoint("LEFT", debugLabel, "RIGHT", 10, 0)
     debugCheckbox:SetChecked(RMTGoldPricesDB.debugEnabled)
 
+    -- Auto-update WoW Token Price text
+    local autoUpdateTokenLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
+    autoUpdateTokenLabel:SetFontObject("GameFontNormal")
+    autoUpdateTokenLabel:SetPoint("TOPLEFT", 10, -130)
+    autoUpdateTokenLabel:SetText("Auto-update WoW Token Price:")
+
+    -- Auto-update WoW Token Price checkbox
+    local autoUpdateTokenCheckbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
+    autoUpdateTokenCheckbox:SetPoint("LEFT", autoUpdateTokenLabel, "RIGHT", 10, 0)
+    autoUpdateTokenCheckbox:SetChecked(RMTGoldPricesDB.autoUpdateTokenPrice)
+
     -- Save button
     local saveButton = CreateFrame("Button", nil, optionsFrame, "GameMenuButtonTemplate")
     saveButton:SetSize(80, 30) -- width, height
@@ -129,15 +172,18 @@ function RMTGoldPrices.CreateOptionsWindow()
         local newTokenPrice = tonumber(tokenInput:GetText())
         local newIllegalPrice = tonumber(illegalInput:GetText())
         local newDebugEnabled = debugCheckbox:GetChecked()
+        local newAutoUpdateTokenPrice = autoUpdateTokenCheckbox:GetChecked()
 
         if newTokenPrice and newIllegalPrice then
             RMTGoldPricesDB.wowTokenPrice = newTokenPrice
             RMTGoldPricesDB.illegalGoldPrice = newIllegalPrice
             RMTGoldPricesDB.debugEnabled = newDebugEnabled
+            RMTGoldPricesDB.autoUpdateTokenPrice = newAutoUpdateTokenPrice
             print("RMTGoldPrices: Prices updated.")
             print("WoW Token Price: " .. RMTGoldPricesDB.wowTokenPrice)
             print("Price per 10k Illegal Gold: $" .. RMTGoldPricesDB.illegalGoldPrice)
             print("Debug enabled: " .. tostring(RMTGoldPricesDB.debugEnabled))
+            print("Auto-update WoW Token Price: " .. tostring(RMTGoldPricesDB.autoUpdateTokenPrice))
         else
             print("RMTGoldPrices: Invalid input. Please enter valid numbers.")
         end
@@ -166,3 +212,8 @@ end
 
 -- Load settings when the addon is loaded
 RMTGoldPrices.LoadSettings()
+
+-- Register the event handler for the Auction House show event
+local eventFrame = CreateFrame("Frame")
+eventFrame:RegisterEvent("AUCTION_HOUSE_SHOW")
+eventFrame:SetScript("OnEvent", RMTGoldPrices.OnAuctionHouseShow)
