@@ -64,7 +64,6 @@ end
 function RMTGoldPrices.FetchWowTokenPrice()
     local wowTokenButton = _G["AuctionFilterButton13"]
     if wowTokenButton then
-
         -- Click the WoW Token button to update the price
         wowTokenButton:Click()
         wowTokenButton:Click()
@@ -112,7 +111,7 @@ end
 -- Create the options window
 function RMTGoldPrices.CreateOptionsWindow()
     local optionsFrame = CreateFrame("Frame", "RMTGoldPricesOptionsFrame", UIParent, "BasicFrameTemplateWithInset")
-    optionsFrame:SetSize(300, 230) -- Adjust height to fit the new checkbox
+    optionsFrame:SetSize(550, 400) -- Adjusted height to fit new options
     optionsFrame:SetPoint("CENTER") -- position at the center of the screen
     optionsFrame:SetMovable(true)
     optionsFrame:EnableMouse(true)
@@ -157,27 +156,27 @@ function RMTGoldPrices.CreateOptionsWindow()
     illegalInput:SetAutoFocus(false)
     illegalInput:SetText(tostring(RMTGoldPricesDB.illegalGoldPrice))
 
-    -- Chat Debug Enabled text
-    local chatDebugLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
-    chatDebugLabel:SetFontObject("GameFontNormal")
-    chatDebugLabel:SetPoint("TOPLEFT", 10, -100)
-    chatDebugLabel:SetText("Enable Chat Debug Messages:")
+    -- Debug Enabled text
+    local debugLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
+    debugLabel:SetFontObject("GameFontNormal")
+    debugLabel:SetPoint("TOPLEFT", 10, -100)
+    debugLabel:SetText("Enable Chat Debug Messages:")
 
-    -- Chat Debug Enabled checkbox
-    local chatDebugCheckbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
-    chatDebugCheckbox:SetPoint("LEFT", chatDebugLabel, "RIGHT", 10, 0)
-    chatDebugCheckbox:SetChecked(RMTGoldPricesDB.chatDebugEnabled)
+    -- Debug Enabled checkbox
+    local debugCheckbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
+    debugCheckbox:SetPoint("LEFT", debugLabel, "RIGHT", 10, 0)
+    debugCheckbox:SetChecked(RMTGoldPricesDB.chatDebugEnabled)
 
-    -- AH Debug Enabled text
-    local ahDebugLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
-    ahDebugLabel:SetFontObject("GameFontNormal")
-    ahDebugLabel:SetPoint("TOPLEFT", 10, -130)
-    ahDebugLabel:SetText("Enable AH Debug Messages:")
+    -- Auction House Debug Enabled text
+    local auctionDebugLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
+    auctionDebugLabel:SetFontObject("GameFontNormal")
+    auctionDebugLabel:SetPoint("TOPLEFT", 10, -130)
+    auctionDebugLabel:SetText("Enable AH Debug Messages:")
 
-    -- AH Debug Enabled checkbox
-    local ahDebugCheckbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
-    ahDebugCheckbox:SetPoint("LEFT", ahDebugLabel, "RIGHT", 10, 0)
-    ahDebugCheckbox:SetChecked(RMTGoldPricesDB.ahDebugEnabled)
+    -- Auction House Debug Enabled checkbox
+    local auctionDebugCheckbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
+    auctionDebugCheckbox:SetPoint("LEFT", auctionDebugLabel, "RIGHT", 10, 0)
+    auctionDebugCheckbox:SetChecked(RMTGoldPricesDB.ahDebugEnabled)
 
     -- Auto-update WoW Token Price text
     local autoUpdateTokenLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
@@ -190,6 +189,50 @@ function RMTGoldPrices.CreateOptionsWindow()
     autoUpdateTokenCheckbox:SetPoint("LEFT", autoUpdateTokenLabel, "RIGHT", 10, 0)
     autoUpdateTokenCheckbox:SetChecked(RMTGoldPricesDB.autoUpdateTokenPrice)
 
+    -- Enable Chat Feature text
+    local chatFeatureLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
+    chatFeatureLabel:SetFontObject("GameFontNormal")
+    chatFeatureLabel:SetPoint("TOPLEFT", 10, -190)
+    chatFeatureLabel:SetText("Enable Chat Feature:")
+
+    -- Enable Chat Feature checkbox
+    local chatFeatureCheckbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
+    chatFeatureCheckbox:SetPoint("LEFT", chatFeatureLabel, "RIGHT", 10, 0)
+    chatFeatureCheckbox:SetChecked(RMTGoldPricesDB.enableChatFeature)
+
+    -- Enable Vendor Feature text
+    local vendorFeatureLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
+    vendorFeatureLabel:SetFontObject("GameFontNormal")
+    vendorFeatureLabel:SetPoint("TOPLEFT", 10, -220)
+    vendorFeatureLabel:SetText("Enable Vendor Feature:")
+
+    -- Enable Vendor Feature checkbox
+    local vendorFeatureCheckbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
+    vendorFeatureCheckbox:SetPoint("LEFT", vendorFeatureLabel, "RIGHT", 10, 0)
+    vendorFeatureCheckbox:SetChecked(RMTGoldPricesDB.enableVendorFeature)
+
+    -- Enable Tooltip Feature text
+    local tooltipFeatureLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
+    tooltipFeatureLabel:SetFontObject("GameFontNormal")
+    tooltipFeatureLabel:SetPoint("TOPLEFT", 10, -250)
+    tooltipFeatureLabel:SetText("Enable Tooltip Feature:")
+
+    -- Enable Tooltip Feature checkbox
+    local tooltipFeatureCheckbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
+    tooltipFeatureCheckbox:SetPoint("LEFT", tooltipFeatureLabel, "RIGHT", 10, 0)
+    tooltipFeatureCheckbox:SetChecked(RMTGoldPricesDB.enableTooltipFeature)
+
+    -- Enable Auction House Feature text
+    local auctionHouseFeatureLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
+    auctionHouseFeatureLabel:SetFontObject("GameFontNormal")
+    auctionHouseFeatureLabel:SetPoint("TOPLEFT", 10, -280)
+    auctionHouseFeatureLabel:SetText("Enable Auction House Feature:")
+
+    -- Enable Auction House Feature checkbox
+    local auctionHouseFeatureCheckbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
+    auctionHouseFeatureCheckbox:SetPoint("LEFT", auctionHouseFeatureLabel, "RIGHT", 10, 0)
+    auctionHouseFeatureCheckbox:SetChecked(RMTGoldPricesDB.enableAuctionHouseFeature)
+
     -- Save button
     local saveButton = CreateFrame("Button", nil, optionsFrame, "GameMenuButtonTemplate")
     saveButton:SetSize(80, 30) -- width, height
@@ -201,22 +244,26 @@ function RMTGoldPrices.CreateOptionsWindow()
     saveButton:SetScript("OnClick", function()
         local newTokenPrice = tonumber(tokenInput:GetText())
         local newIllegalPrice = tonumber(illegalInput:GetText())
-        local newChatDebugEnabled = chatDebugCheckbox:GetChecked()
-        local newAHDebugEnabled = ahDebugCheckbox:GetChecked()
+        local newDebugEnabled = debugCheckbox:GetChecked()
+        local newAuctionDebugEnabled = auctionDebugCheckbox:GetChecked()
         local newAutoUpdateTokenPrice = autoUpdateTokenCheckbox:GetChecked()
+        local newChatFeatureEnabled = chatFeatureCheckbox:GetChecked()
+        local newVendorFeatureEnabled = vendorFeatureCheckbox:GetChecked()
+        local newTooltipFeatureEnabled = tooltipFeatureCheckbox:GetChecked()
+        local newAuctionHouseFeatureEnabled = auctionHouseFeatureCheckbox:GetChecked()
 
         if newTokenPrice and newIllegalPrice then
             RMTGoldPricesDB.wowTokenPrice = newTokenPrice
             RMTGoldPricesDB.illegalGoldPrice = newIllegalPrice
-            RMTGoldPricesDB.chatDebugEnabled = newChatDebugEnabled
-            RMTGoldPricesDB.ahDebugEnabled = newAHDebugEnabled
+            RMTGoldPricesDB.chatDebugEnabled = newDebugEnabled
+            RMTGoldPricesDB.ahDebugEnabled = newAuctionDebugEnabled
             RMTGoldPricesDB.autoUpdateTokenPrice = newAutoUpdateTokenPrice
-            print("RMTGoldPrices: Prices updated.")
-            print("WoW Token Price: " .. RMTGoldPricesDB.wowTokenPrice)
-            print("Price per 10k Illegal Gold: $" .. RMTGoldPricesDB.illegalGoldPrice)
-            print("Chat Debug enabled: " .. tostring(RMTGoldPricesDB.chatDebugEnabled))
-            print("AH Debug enabled: " .. tostring(RMTGoldPricesDB.ahDebugEnabled))
-            print("Auto-update WoW Token Price: " .. tostring(RMTGoldPricesDB.autoUpdateTokenPrice))
+            RMTGoldPricesDB.enableChatFeature = newChatFeatureEnabled
+            RMTGoldPricesDB.enableVendorFeature = newVendorFeatureEnabled
+            RMTGoldPricesDB.enableTooltipFeature = newTooltipFeatureEnabled
+            RMTGoldPricesDB.enableAuctionHouseFeature = newAuctionHouseFeatureEnabled
+
+            print("RMTGoldPrices: Settings updated.")
         else
             print("RMTGoldPrices: Invalid input. Please enter valid numbers.")
         end
@@ -242,8 +289,3 @@ SlashCmdList["RGP"] = function(msg)
             "RMTGoldPrices: Unknown command. Use '/rgp options' to open the options window, '/rgp pause' to toggle pause, or '/rgp resume' to resume.")
     end
 end
-
--- Register the event handler for the Auction House show event
-local eventFrame = CreateFrame("Frame")
-eventFrame:RegisterEvent("AUCTION_HOUSE_SHOW")
-eventFrame:SetScript("OnEvent", RMTGoldPrices.OnAuctionHouseShow)
