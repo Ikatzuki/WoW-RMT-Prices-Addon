@@ -4,8 +4,6 @@ RMTGoldPrices = {}
 -- Default values for saved variables
 RMTGoldPrices.defaultSettings = {
     wowTokenPrice = 1, -- Default WoW Token price in gold
-    chatDebugEnabled = false, -- Default chat debug state
-    ahDebugEnabled = false, -- Default AH debug state
     enableChatFeature = true, -- Enable Chat feature by default
     enableVendorFeature = true, -- Enable Vendor feature by default
     enableTooltipFeature = true, -- Enable Tooltip feature by default
@@ -72,26 +70,6 @@ eventFrame:SetScript("OnEvent", function(self, event, name)
         RMTGoldPrices.FetchWowTokenPrice()
     end
 end)
-
--- Function to toggle pause state
-function RMTGoldPrices.TogglePause()
-    RMTGoldPrices.isPaused = not RMTGoldPrices.isPaused
-    if RMTGoldPrices.isPaused then
-        print("RMTGoldPrices addon paused.")
-    else
-        print("RMTGoldPrices addon resumed.")
-    end
-end
-
--- Function to resume the addon
-function RMTGoldPrices.ResumeAddon()
-    if RMTGoldPrices.isPaused then
-        RMTGoldPrices.isPaused = false
-        print("RMTGoldPrices addon resumed.")
-    else
-        print("RMTGoldPrices addon is already running.")
-    end
-end
 
 -- Create the options window
 function RMTGoldPrices.CreateOptionsWindow()
@@ -214,7 +192,7 @@ function RMTGoldPrices.CreateOptionsWindow()
     end)
 end
 
--- Slash command to show options window, toggle pause state, and resume the addon
+-- Slash command to show options window
 SLASH_RGP1 = "/rgp"
 SlashCmdList["RGP"] = function(msg)
     if msg == "options" then
@@ -222,13 +200,8 @@ SlashCmdList["RGP"] = function(msg)
             RMTGoldPrices.CreateOptionsWindow()
         end
         RMTGoldPricesOptionsFrame:Show()
-    elseif msg == "pause" then
-        RMTGoldPrices.TogglePause()
-    elseif msg == "resume" then
-        RMTGoldPrices.ResumeAddon()
     else
-        print(
-            "RMTGoldPrices: Unknown command. Use '/rgp options' to open the options window, '/rgp pause' to toggle pause, or '/rgp resume' to resume.")
+        print("RMTGoldPrices: Unknown command. Use '/rgp options' to open the options window")
     end
 end
 
