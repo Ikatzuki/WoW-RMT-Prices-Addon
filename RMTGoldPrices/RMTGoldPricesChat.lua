@@ -23,54 +23,69 @@ local function OnChatMessage(self, event, msg, author, ...)
         processedMessages[msgId] = nil
     end)
 
-    -- Pattern to find any number followed by "g", "G", "k", or "K" followed by a non-alphanumeric character or end of string,
-    -- ensuring no letters before the number
-    local pattern = "(%f[%a%d]%d+[gGkK]%f[%A%d])"
-
     -- Debug: print the original message to the console
     if RMTGoldPricesDB.debugEnabled then
         print("Original message:", msg)
     end
 
-    -- Check if the message contains the pattern
-    local containsPattern = msg:find(pattern)
+    -- Pattern to find any item link followed by a gold amount
+    local itemLinkPattern = "|c%x+|Hitem:.-|h.-|h|r"
+    local goldPattern = "(%d+[gGkK])"
 
-    if containsPattern then
-        if RMTGoldPricesDB.debugEnabled then
-            print("Pattern '%d+[gGkK]' found in message.")
+    -- Function to append currency to gold amount
+    local function appendCurrencyToGoldAmount(goldAmount)
+        local number, suffix = goldAmount:match("(%d+)([gGkK])")
+        if number and suffix then
+            return RMTGoldPrices.AppendCurrency(number, suffix, "")
         end
+        return goldAmount
+    end
 
-        -- Replace matches in the message
-        local success, newMsg = pcall(function()
-            return msg:gsub(pattern, function(numberWithSuffix)
-                local pre, number, suffix, post = msg:match("(.-)(%d+)([gGkK])(%f[%A%d])")
-                -- Ensure there are no letters immediately before the number + g/k
-                if pre and not pre:match("%a$") then
-                    return pre .. RMTGoldPrices.AppendCurrency(number, suffix, post)
+    -- Check each part for item links and gold amounts
+    local modified = false
+    local newMsg = msg:gsub("(" .. itemLinkPattern .. ")( ?%d+[gGkK])", function(itemLink, goldAmount)
+        if goldAmount then
+            if RMTGoldPricesDB.debugEnabled then
+                print("Detected item link:", itemLink)
+                print("Detected gold amount:", goldAmount)
+            end
+            local modifiedGoldAmount = appendCurrencyToGoldAmount(goldAmount)
+            modified = true
+            return itemLink .. " " .. modifiedGoldAmount
+        end
+        return itemLink .. (goldAmount or "")
+    end)
+
+    -- If no item link was found, check for gold amounts directly in the message
+    if not modified then
+        newMsg = msg:gsub(goldPattern, function(goldAmount)
+            local pre, number, suffix, post = msg:match("(.-)(%d+)([gGkK])(.*)")
+            if pre and number and suffix then
+                if pre == "" or pre:match("|c%x+|Hitem:.-|h.-|h|r$") then
+                    if RMTGoldPricesDB.debugEnabled then
+                        print("Detected gold amount directly:", goldAmount)
+                    end
+                    modified = true
+                    return pre .. appendCurrencyToGoldAmount(goldAmount) .. post
                 else
-                    return numberWithSuffix
+                    return goldAmount
                 end
-            end)
+            end
+            return goldAmount
         end)
+    end
 
-        if success then
-            -- Debug: print the new message to the console
-            if RMTGoldPricesDB.debugEnabled then
-                print("Modified message:", newMsg)
-            end
-
-            -- Return the modified message
-            return false, newMsg, author, ...
-        else
-            -- In case of error, return the original message unmodified
-            if RMTGoldPricesDB.debugEnabled then
-                print("Error processing message:", newMsg)
-            end
-            return false, msg, author, ...
+    -- Return the modified message if it was changed
+    if modified then
+        -- Debug: print the new message to the console
+        if RMTGoldPricesDB.debugEnabled then
+            print("Modified message:", newMsg)
         end
+
+        return false, newMsg, author, ...
     else
         if RMTGoldPricesDB.debugEnabled then
-            print("Pattern '%d+[gGkK]' not found in message.")
+            print("Pattern not found or no modifications needed.")
         end
     end
 
