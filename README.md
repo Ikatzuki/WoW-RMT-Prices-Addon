@@ -11,6 +11,6 @@ First configure the gold prices with /rgp options - Enter the price of the wow t
 You will now start seeing $ amounts appear in your Chat, Auction House (When selecting an item), vendor prices and auction prices (Auctionator) on item tooltips.
 
 # Commands
-/rgp pause - Pauses the chat gold to dollar amount
-/rgp resume - Resumes the chat gold to dollar amount
+/rgp pause - Pauses the chat gold to dollar amount  
+/rgp resume - Resumes the chat gold to dollar amount  
 /rgp options - Options menu where you configure gold prices
