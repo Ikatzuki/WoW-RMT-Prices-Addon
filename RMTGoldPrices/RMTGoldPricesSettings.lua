@@ -7,7 +7,11 @@ RMTGoldPrices.defaultSettings = {
     illegalGoldPrice = 15, -- Default illegal gold price for $20
     chatDebugEnabled = false, -- Default chat debug state
     ahDebugEnabled = false, -- Default AH debug state
-    autoUpdateTokenPrice = true -- Default auto-update WoW token price state
+    autoUpdateTokenPrice = true, -- Default auto-update WoW token price state
+    enableChatFeature = true, -- Enable Chat feature by default
+    enableVendorFeature = true, -- Enable Vendor feature by default
+    enableTooltipFeature = true, -- Enable Tooltip feature by default
+    enableAuctionHouseFeature = true -- Enable Auction House feature by default
 }
 
 -- Function to load saved variables
@@ -22,6 +26,9 @@ function RMTGoldPrices.LoadSettings()
         end
     end
 end
+
+-- Load settings when the addon is loaded
+RMTGoldPrices.LoadSettings()
 
 -- Function to toggle pause state
 function RMTGoldPrices.TogglePause()
@@ -225,9 +232,6 @@ SlashCmdList["RGP"] = function(msg)
             "RMTGoldPrices: Unknown command. Use '/rgp options' to open the options window, '/rgp pause' to toggle pause, or '/rgp resume' to resume.")
     end
 end
-
--- Load settings when the addon is loaded
-RMTGoldPrices.LoadSettings()
 
 -- Register the event handler for the Auction House show event
 local eventFrame = CreateFrame("Frame")

@@ -4,9 +4,9 @@
 ## Author: Ikat + ChatGPT
 ## SavedVariables: RMTGoldPricesDB
 
-RMTGoldPrices.lua
 RMTGoldPricesSettings.lua
+RMTGoldPrices.lua
 RMTGoldPricesChat.lua
-RMTGoldPricesTooltip.lua
-RMTGoldPricesAuction.lua
 RMTGoldPricesVendor.lua
+RMTGoldPricesTooltip.lua
+RMTGoldPricesAuctionHouse.lua
