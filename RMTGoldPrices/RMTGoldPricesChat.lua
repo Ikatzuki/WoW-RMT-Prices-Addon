@@ -28,7 +28,7 @@ local function OnChatMessage(self, event, msg, author, ...)
         print("Original message:", msg)
     end
 
-    -- Pattern to find any item link followed by a gold amount
+    -- Pattern to find any item link followed by a gold amount with an optional space
     local itemLinkPattern = "|c%x+|Hitem:.-|h.-|h|r"
     local goldPattern = "(%d+[gGkK])"
 
@@ -41,38 +41,63 @@ local function OnChatMessage(self, event, msg, author, ...)
         return goldAmount
     end
 
-    -- Check each part for item links and gold amounts
-    local modified = false
-    local newMsg = msg:gsub("(" .. itemLinkPattern .. ")( ?%d+[gGkK])", function(itemLink, goldAmount)
-        if goldAmount then
-            if RMTGoldPricesDB.chatDebugEnabled then
-                print("Detected item link:", itemLink)
-                print("Detected gold amount:", goldAmount)
-            end
-            local modifiedGoldAmount = appendCurrencyToGoldAmount(goldAmount)
-            modified = true
-            return itemLink .. " " .. modifiedGoldAmount
-        end
-        return itemLink .. (goldAmount or "")
-    end)
-
-    -- If no item link was found, check for gold amounts directly in the message
-    if not modified then
-        newMsg = msg:gsub(goldPattern, function(goldAmount)
-            local pre, number, suffix, post = msg:match("(.-)(%d+)([gGkK])(.*)")
-            if pre and number and suffix then
-                if pre == "" or pre:match("|c%x+|Hitem:.-|h.-|h|r$") then
-                    if RMTGoldPricesDB.chatDebugEnabled then
-                        print("Detected gold amount directly:", goldAmount)
-                    end
-                    modified = true
-                    return pre .. appendCurrencyToGoldAmount(goldAmount) .. post
-                else
-                    return goldAmount
+    -- Function to handle modification of message segments
+    local function modifySegment(segment)
+        local modified = false
+        local newSegment = segment:gsub("(" .. itemLinkPattern .. " ?)(%d+[gGkK])", function(itemLink, goldAmount)
+            if goldAmount then
+                if RMTGoldPricesDB.chatDebugEnabled then
+                    print("Detected item link:", itemLink)
+                    print("Detected gold amount:", goldAmount)
                 end
+                local modifiedGoldAmount = appendCurrencyToGoldAmount(goldAmount)
+                modified = true
+                return itemLink .. modifiedGoldAmount
             end
-            return goldAmount
+            return itemLink .. (goldAmount or "")
         end)
+
+        if not modified then
+            newSegment = segment:gsub(goldPattern, function(goldAmount)
+                local pre, number, suffix, post = segment:match("(.-)(%d+)([gGkK])(.*)")
+                if pre and number and suffix then
+                    if pre == "" or pre:match("|c%x+|Hitem:.-|h.-|h|r ?$") then
+                        if RMTGoldPricesDB.chatDebugEnabled then
+                            print("Detected gold amount directly:", goldAmount)
+                        end
+                        modified = true
+                        return pre .. appendCurrencyToGoldAmount(goldAmount) .. post
+                    else
+                        return goldAmount
+                    end
+                end
+                return goldAmount
+            end)
+        end
+
+        return modified, newSegment
+    end
+
+    -- Check each part for item links and gold amounts
+    local newMsg = ""
+    local startIndex = 1
+    local modified = false
+
+    while startIndex <= #msg do
+        local segmentStart, segmentEnd, itemLink = msg:find("(" .. itemLinkPattern .. " ?)", startIndex)
+        if not segmentStart then
+            local remainingSegment = msg:sub(startIndex)
+            local segmentModified, newSegment = modifySegment(remainingSegment)
+            newMsg = newMsg .. newSegment
+            modified = modified or segmentModified
+            break
+        else
+            local segmentBefore = msg:sub(startIndex, segmentStart - 1)
+            local segmentModified, newSegment = modifySegment(segmentBefore)
+            newMsg = newMsg .. newSegment .. itemLink
+            modified = modified or segmentModified
+            startIndex = segmentEnd + 1
+        end
     end
 
     -- Return the modified message if it was changed
