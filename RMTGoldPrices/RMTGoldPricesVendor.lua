@@ -33,6 +33,10 @@ end
 
 -- Function to handle the merchant frame update event
 local function OnMerchantFrameUpdate()
+    if not RMTGoldPricesDB.enableVendorFeature then
+        ClearOldDollarTexts() -- Ensure old texts are hidden if feature is disabled
+        return
+    end
     ClearOldDollarTexts()
     local numItems = GetMerchantNumItems()
     for index = 1, MERCHANT_ITEMS_PER_PAGE do
@@ -48,6 +52,7 @@ end
 -- Function to handle merchant show event
 local function OnMerchantShow()
     if not RMTGoldPricesDB.enableVendorFeature then
+        ClearOldDollarTexts() -- Ensure old texts are hidden if feature is disabled
         return
     end
     OnMerchantFrameUpdate()
