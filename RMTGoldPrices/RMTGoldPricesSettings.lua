@@ -37,7 +37,7 @@ function RMTGoldPrices.FetchWowTokenPrice(tokenLabel)
     C_WowTokenPublic.UpdateMarketPrice()
 
     -- Wait a bit for the market price to update
-    C_Timer.After(1, function()
+    C_Timer.After(3, function()
         local tokenPriceInCopper = C_WowTokenPublic.GetCurrentMarketPrice()
         if tokenPriceInCopper then
             -- Convert the token price from copper to gold
