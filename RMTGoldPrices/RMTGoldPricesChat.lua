@@ -26,11 +26,13 @@ local function OnChatMessage(self, event, msg, author, ...)
     -- Pattern to find any item link
     local itemLinkPattern = "|c%x+|Hitem:.-|h.-|h|r"
     -- Pattern to find gold amounts (with suffixes g/G or k/K) with boundaries
-    local goldPattern = "(%f[%a%d]%d+[gGkK]%f[%A])"
+    local goldPattern = "(%f[%a%d][%d,%.]+[gGkK]%f[%A])"
 
     -- Function to append currency to gold amount
     local function appendCurrencyToGoldAmount(goldAmount)
-        local number, suffix = goldAmount:match("(%d+)([gGkK])")
+        -- Remove commas and dots
+        local cleanedGoldAmount = goldAmount:gsub("[,%.]", "")
+        local number, suffix = cleanedGoldAmount:match("(%d+)([gGkK])")
         if number and suffix then
             return RMTGoldPrices.AppendCurrency(number, suffix, "")
         end
