@@ -1,14 +1,14 @@
 -- Function to format and append dollar value to the buyout price
 local function AppendDollarValueToBuyoutPrice(buyoutPrice)
     local goldValue = buyoutPrice / 10000
-    local tokenDollarValue = (goldValue / RMTGoldPricesDB.wowTokenPrice) * 20
+    local tokenDollarValue = (goldValue / GoldtoCashValueDB.wowTokenPrice) * 20
 
     return string.format(" |cFFFFD700($%.2f)|r", tokenDollarValue)
 end
 
 -- Function to update the buyout price display with the dollar value
 local function UpdateBuyoutPriceDisplay(buttonIndex)
-    if not RMTGoldPricesDB.enableAuctionHouseFeature then
+    if not GoldtoCashValueDB.enableAuctionHouseFeature then
         return
     end
 
@@ -18,11 +18,24 @@ local function UpdateBuyoutPriceDisplay(buttonIndex)
 
         if buyoutPrice and buyoutPrice > 0 then
             local dollarText = AppendDollarValueToBuyoutPrice(buyoutPrice)
-            if not BrowseBuyoutPriceDollar then
-                -- Use the parent frame of BrowseTitle to create the font string
-                BrowseBuyoutPriceDollar = AuctionFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-                BrowseBuyoutPriceDollar:SetPoint("LEFT", BrowseTitle, "RIGHT", 100, 0)
+            local parentFrame
+
+            if IsAddOnLoaded("ElvUI") then
+                -- ElvUI is loaded, use AuctionFrame as the parent frame
+                parentFrame = AuctionFrame
+                if not BrowseBuyoutPriceDollar then
+                    BrowseBuyoutPriceDollar = parentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+                    BrowseBuyoutPriceDollar:SetPoint("LEFT", BrowseTitle, "RIGHT", 100, 0)
+                end
+            else
+                -- Default UI, use BrowseBuyoutPriceGoldButtonText as the reference
+                parentFrame = _G["BrowseBuyoutPriceGoldButtonText"]
+                if not BrowseBuyoutPriceDollar then
+                    BrowseBuyoutPriceDollar = parentFrame:GetParent():CreateFontString(nil, "OVERLAY", "GameFontNormal")
+                    BrowseBuyoutPriceDollar:SetPoint("RIGHT", parentFrame, "LEFT", -2, 0)
+                end
             end
+
             BrowseBuyoutPriceDollar:SetText(dollarText)
         end
     end
@@ -37,7 +50,7 @@ end
 
 -- Hook into the Auction House frame
 local function HookAuctionHouse()
-    if not RMTGoldPricesDB.enableAuctionHouseFeature then
+    if not GoldtoCashValueDB.enableAuctionHouseFeature then
         return
     end
 
@@ -58,7 +71,7 @@ end
 -- Event handler to wait for Auction House UI to load
 local function OnEvent(self, event, ...)
     if event == "AUCTION_HOUSE_SHOW" then
-        if not RMTGoldPricesDB.enableAuctionHouseFeature then
+        if not GoldtoCashValueDB.enableAuctionHouseFeature then
             return
         end
 
@@ -68,7 +81,7 @@ local function OnEvent(self, event, ...)
 end
 
 -- Ensure the database is initialized
-if not RMTGoldPricesDB then
+if not GoldtoCashValueDB then
     return
 end
 

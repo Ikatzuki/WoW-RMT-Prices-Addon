@@ -1,7 +1,7 @@
 -- Function to convert vendor price to dollar value
 local function ConvertToDollarValue(vendorPrice)
     local goldValue = vendorPrice / 10000
-    local tokenDollarValue = (goldValue / RMTGoldPricesDB.wowTokenPrice) * 20
+    local tokenDollarValue = (goldValue / GoldtoCashValueDB.wowTokenPrice) * 20
     return tokenDollarValue
 end
 
@@ -33,7 +33,7 @@ end
 
 -- Function to handle the merchant frame update event
 local function OnMerchantFrameUpdate()
-    if not RMTGoldPricesDB.enableVendorFeature then
+    if not GoldtoCashValueDB.enableVendorFeature then
         ClearOldDollarTexts() -- Ensure old texts are hidden if feature is disabled
         return
     end
@@ -51,7 +51,7 @@ end
 
 -- Function to handle merchant show event
 local function OnMerchantShow()
-    if not RMTGoldPricesDB.enableVendorFeature then
+    if not GoldtoCashValueDB.enableVendorFeature then
         ClearOldDollarTexts() -- Ensure old texts are hidden if feature is disabled
         return
     end

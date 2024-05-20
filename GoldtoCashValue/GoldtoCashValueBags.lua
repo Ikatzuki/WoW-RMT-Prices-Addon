@@ -1,9 +1,9 @@
 -- Initialize the table for the new module
-RMTGoldPricesBags = {}
+GoldtoCashValueBags = {}
 
 -- Function to convert gold to dollar value
 local function ConvertGoldToDollar(goldAmount)
-    local tokenDollarValue = (goldAmount / RMTGoldPricesDB.wowTokenPrice) * 20
+    local tokenDollarValue = (goldAmount / GoldtoCashValueDB.wowTokenPrice) * 20
     return tokenDollarValue
 end
 
@@ -56,10 +56,18 @@ end
 -- Event handler function
 local function OnEvent(self, event, ...)
     if event == "PLAYER_MONEY" or event == "PLAYER_ENTERING_WORLD" then
-        if not RMTGoldPricesDB.enableBagsFeature then
+        if not GoldtoCashValueDB.enableBagsFeature then
             return
         end
         UpdateGoldDisplay()
+    elseif event == "PLAYER_LOGIN" then
+        -- Delay the update by 5 seconds to ensure WoW Token price is fetched
+        C_Timer.After(5, function()
+            if not GoldtoCashValueDB.enableBagsFeature then
+                return
+            end
+            UpdateGoldDisplay()
+        end)
     end
 end
 
@@ -67,4 +75,5 @@ end
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("PLAYER_MONEY")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:SetScript("OnEvent", OnEvent)

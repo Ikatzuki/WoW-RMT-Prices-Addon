@@ -1,0 +1,12 @@
+## Interface: 40400
+## Title: Gold to Cash Value
+## Notes: Shows the cash($) value of gold in various places in-game.
+## Author: Ikat
+## SavedVariables: GoldtoCashValueDB
+
+GoldtoCashValueSettings.lua
+GoldtoCashValueChat.lua
+GoldtoCashValueVendor.lua
+GoldtoCashValueTooltip.lua
+GoldtoCashValueAuctionHouse.lua
+GoldtoCashValueBags.lua

@@ -2,7 +2,7 @@
 local function AddDollarValueToVendorPrice(tooltipFrame, vendorPrice, countString)
     if vendorPrice > 0 then
         local goldValue = vendorPrice / 10000
-        local tokenDollarValue = (goldValue / RMTGoldPricesDB.wowTokenPrice) * 20
+        local tokenDollarValue = (goldValue / GoldtoCashValueDB.wowTokenPrice) * 20
 
         local dollarText = string.format(" ($%.2f)", tokenDollarValue)
 
@@ -23,7 +23,7 @@ end
 local function AddDollarValueToAuctionPrice(tooltipFrame, auctionPrice, countString, cannotAuction)
     if auctionPrice and not cannotAuction then
         local goldValue = auctionPrice / 10000
-        local tokenDollarValue = (goldValue / RMTGoldPricesDB.wowTokenPrice) * 20
+        local tokenDollarValue = (goldValue / GoldtoCashValueDB.wowTokenPrice) * 20
 
         local dollarText = string.format(" ($%.2f)", tokenDollarValue)
 
@@ -47,7 +47,7 @@ local function OnTooltipSetItem(tooltip, ...)
         local _, _, _, _, _, _, _, _, _, _, sellPrice = GetItemInfo(link)
         if sellPrice and sellPrice > 0 then
             local goldValue = sellPrice / 10000
-            local tokenDollarValue = (goldValue / RMTGoldPricesDB.wowTokenPrice) * 20
+            local tokenDollarValue = (goldValue / GoldtoCashValueDB.wowTokenPrice) * 20
 
             local dollarText = string.format("|cFFFFFFFFVendor: |cFFFFD700($%.2f)|r", tokenDollarValue)
 
@@ -63,7 +63,7 @@ if IsAddOnLoaded("Auctionator") then
 
     local originalAddVendorTip = Auctionator.Tooltip.AddVendorTip
     Auctionator.Tooltip.AddVendorTip = function(tooltipFrame, vendorPrice, countString)
-        if not RMTGoldPricesDB.enableTooltipFeature then
+        if not GoldtoCashValueDB.enableTooltipFeature then
             return
         end
         -- Call the original function
@@ -75,7 +75,7 @@ if IsAddOnLoaded("Auctionator") then
 
     local originalAddAuctionTip = Auctionator.Tooltip.AddAuctionTip
     Auctionator.Tooltip.AddAuctionTip = function(tooltipFrame, auctionPrice, countString, cannotAuction)
-        if not RMTGoldPricesDB.enableTooltipFeature then
+        if not GoldtoCashValueDB.enableTooltipFeature then
             return
         end
         -- Call the original function

@@ -3,7 +3,7 @@ local processedMessages = {}
 
 -- Function to handle chat messages
 local function OnChatMessage(self, event, msg, author, ...)
-    if not RMTGoldPricesDB or not RMTGoldPricesDB.enableChatFeature then
+    if not GoldtoCashValueDB or not GoldtoCashValueDB.enableChatFeature then
         return
     end
 
@@ -34,7 +34,7 @@ local function OnChatMessage(self, event, msg, author, ...)
         local cleanedGoldAmount = goldAmount:gsub("[,%.]", "")
         local number, suffix = cleanedGoldAmount:match("(%d+)([gGkK])")
         if number and suffix then
-            return RMTGoldPrices.AppendCurrency(number, suffix, "")
+            return GoldtoCashValue.AppendCurrency(number, suffix, "")
         end
         return goldAmount
     end
@@ -88,14 +88,14 @@ local function OnChatMessage(self, event, msg, author, ...)
 end
 
 -- Function to append the equivalent dollar value
-function RMTGoldPrices.AppendCurrency(number, suffix, post)
+function GoldtoCashValue.AppendCurrency(number, suffix, post)
     local num = tonumber(number)
     local tokenDollarValue
 
     if suffix == "g" or suffix == "G" then
-        tokenDollarValue = (num / RMTGoldPricesDB.wowTokenPrice) * 20
+        tokenDollarValue = (num / GoldtoCashValueDB.wowTokenPrice) * 20
     elseif suffix == "k" or suffix == "K" then
-        tokenDollarValue = (num * 1000 / RMTGoldPricesDB.wowTokenPrice) * 20
+        tokenDollarValue = (num * 1000 / GoldtoCashValueDB.wowTokenPrice) * 20
     end
 
     return number .. suffix .. string.format(" |cFFFFD700($%.2f)|r", tokenDollarValue) .. post

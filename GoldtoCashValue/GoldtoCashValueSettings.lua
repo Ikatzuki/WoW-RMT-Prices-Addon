@@ -1,8 +1,8 @@
 -- Create a global table for the addon
-RMTGoldPrices = {}
+GoldtoCashValue = {}
 
 -- Default values for saved variables
-RMTGoldPrices.defaultSettings = {
+GoldtoCashValue.defaultSettings = {
     wowTokenPrice = 1, -- Default WoW Token price in gold
     enableChatFeature = true, -- Enable Chat feature by default
     enableVendorFeature = true, -- Enable Vendor feature by default
@@ -12,13 +12,13 @@ RMTGoldPrices.defaultSettings = {
 }
 
 -- Function to load saved variables
-function RMTGoldPrices.LoadSettings()
-    if not RMTGoldPricesDB then
-        RMTGoldPricesDB = RMTGoldPrices.defaultSettings
+function GoldtoCashValue.LoadSettings()
+    if not GoldtoCashValueDB then
+        GoldtoCashValueDB = GoldtoCashValue.defaultSettings
     else
-        for k, v in pairs(RMTGoldPrices.defaultSettings) do
-            if RMTGoldPricesDB[k] == nil then
-                RMTGoldPricesDB[k] = v
+        for k, v in pairs(GoldtoCashValue.defaultSettings) do
+            if GoldtoCashValueDB[k] == nil then
+                GoldtoCashValueDB[k] = v
             end
         end
     end
@@ -26,11 +26,11 @@ end
 
 -- Function to update the token label
 local function UpdateTokenLabel(tokenLabel)
-    tokenLabel:SetText("WoW Token Price: |cFFFFFFFF" .. tostring(RMTGoldPricesDB.wowTokenPrice) .. "|r gold")
+    tokenLabel:SetText("WoW Token Price: |cFFFFFFFF" .. tostring(GoldtoCashValueDB.wowTokenPrice) .. "|r gold")
 end
 
 -- Function to fetch WoW Token price
-function RMTGoldPrices.FetchWowTokenPrice(tokenLabel, triggeredByButton)
+function GoldtoCashValue.FetchWowTokenPrice(tokenLabel, triggeredByButton)
     -- Update the market price first
     C_WowTokenPublic.UpdateMarketPrice()
 
@@ -40,25 +40,25 @@ function RMTGoldPrices.FetchWowTokenPrice(tokenLabel, triggeredByButton)
         if tokenPriceInCopper then
             -- Convert the token price from copper to gold
             local tokenPriceInGold = tokenPriceInCopper / 10000
-            RMTGoldPricesDB.wowTokenPrice = tokenPriceInGold
+            GoldtoCashValueDB.wowTokenPrice = tokenPriceInGold
             -- Update the label after fetching the price
             if tokenLabel then
                 UpdateTokenLabel(tokenLabel)
             end
             if triggeredByButton then
-                print("RMTGoldPrices: WoW Token price updated to " .. tokenPriceInGold .. " gold.")
+                print("GoldtoCashValue: WoW Token price updated to " .. tokenPriceInGold .. " gold.")
             end
         else
-            print("RMTGoldPrices: Failed to retrieve the current market price.")
+            print("GoldtoCashValue: Failed to retrieve the current market price.")
         end
     end)
 end
 
 -- Function to handle addon loaded event
 local function OnAddonLoaded(event, name)
-    if name == "RMTGoldPrices" then
+    if name == "GoldtoCashValue" then
         -- Load settings when the addon is loaded
-        RMTGoldPrices.LoadSettings()
+        GoldtoCashValue.LoadSettings()
     end
 end
 
@@ -70,13 +70,13 @@ eventFrame:SetScript("OnEvent", function(self, event, name)
     if event == "ADDON_LOADED" then
         OnAddonLoaded(event, name)
     elseif event == "PLAYER_LOGIN" then
-        RMTGoldPrices.FetchWowTokenPrice(nil, false) -- Fetch token price on login without printing
+        GoldtoCashValue.FetchWowTokenPrice(nil, false) -- Fetch token price on login without printing
     end
 end)
 
 -- Create the options window
-function RMTGoldPrices.CreateOptionsWindow()
-    local optionsFrame = CreateFrame("Frame", "RMTGoldPricesOptionsFrame", UIParent, "BasicFrameTemplateWithInset")
+function GoldtoCashValue.CreateOptionsWindow()
+    local optionsFrame = CreateFrame("Frame", "GoldtoCashValueOptionsFrame", UIParent, "BasicFrameTemplateWithInset")
     optionsFrame:SetSize(450, 300) -- Adjusted width to fit credits text
     optionsFrame:SetPoint("CENTER") -- position at the center of the screen
     optionsFrame:SetMovable(true)
@@ -94,7 +94,7 @@ function RMTGoldPrices.CreateOptionsWindow()
     local title = optionsFrame:CreateFontString(nil, "OVERLAY")
     title:SetFontObject("GameFontHighlightLarge")
     title:SetPoint("TOP", 0, -3)
-    title:SetText("RMTGoldPrices Options")
+    title:SetText("Gold to Cash Value Options")
 
     -- WoW Token Price text
     local tokenLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
@@ -114,7 +114,7 @@ function RMTGoldPrices.CreateOptionsWindow()
     updateTokenButton:SetScript("OnClick", function()
         if canClickUpdate then
             canClickUpdate = false
-            RMTGoldPrices.FetchWowTokenPrice(tokenLabel, true) -- Fetch token price and print
+            GoldtoCashValue.FetchWowTokenPrice(tokenLabel, true) -- Fetch token price and print
             C_Timer.After(5, function()
                 canClickUpdate = true
             end)
@@ -132,7 +132,7 @@ function RMTGoldPrices.CreateOptionsWindow()
 
         local checkbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
         checkbox:SetPoint("LEFT", label, "RIGHT", 10, 0)
-        checkbox:SetChecked(RMTGoldPricesDB[settingKey])
+        checkbox:SetChecked(GoldtoCashValueDB[settingKey])
 
         return label, checkbox
     end
@@ -171,13 +171,13 @@ function RMTGoldPrices.CreateOptionsWindow()
         local newBagsFeatureEnabled = bagsFeatureCheckbox:GetChecked()
 
         -- Save current settings to check against the new settings later
-        local oldBagsFeatureEnabled = RMTGoldPricesDB.enableBagsFeature
+        local oldBagsFeatureEnabled = GoldtoCashValueDB.enableBagsFeature
 
-        RMTGoldPricesDB.enableChatFeature = newChatFeatureEnabled
-        RMTGoldPricesDB.enableVendorFeature = newVendorFeatureEnabled
-        RMTGoldPricesDB.enableTooltipFeature = newTooltipFeatureEnabled
-        RMTGoldPricesDB.enableAuctionHouseFeature = newAuctionHouseFeatureEnabled
-        RMTGoldPricesDB.enableBagsFeature = newBagsFeatureEnabled
+        GoldtoCashValueDB.enableChatFeature = newChatFeatureEnabled
+        GoldtoCashValueDB.enableVendorFeature = newVendorFeatureEnabled
+        GoldtoCashValueDB.enableTooltipFeature = newTooltipFeatureEnabled
+        GoldtoCashValueDB.enableAuctionHouseFeature = newAuctionHouseFeatureEnabled
+        GoldtoCashValueDB.enableBagsFeature = newBagsFeatureEnabled
 
         -- Check if the bags feature setting was changed
         if oldBagsFeatureEnabled ~= newBagsFeatureEnabled then
@@ -189,13 +189,13 @@ function RMTGoldPrices.CreateOptionsWindow()
 end
 
 -- Slash command to show options window
-SLASH_RGP1 = "/rgp"
-SlashCmdList["RGP"] = function()
-    if not RMTGoldPricesOptionsFrame then
-        RMTGoldPrices.CreateOptionsWindow()
+SLASH_GTC1 = "/gtc"
+SlashCmdList["GTC"] = function()
+    if not GoldtoCashValueOptionsFrame then
+        GoldtoCashValue.CreateOptionsWindow()
     end
-    RMTGoldPricesOptionsFrame:Show()
+    GoldtoCashValueOptionsFrame:Show()
 end
 
 -- Ensure settings are loaded immediately
-RMTGoldPrices.LoadSettings()
+GoldtoCashValue.LoadSettings()
