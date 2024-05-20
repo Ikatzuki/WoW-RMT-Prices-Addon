@@ -40,7 +40,6 @@ function RMTGoldPrices.FetchWowTokenPrice(tokenLabel)
             -- Convert the token price from copper to gold
             local tokenPriceInGold = tokenPriceInCopper / 10000
             RMTGoldPricesDB.wowTokenPrice = tokenPriceInGold
-            print("RMTGoldPrices: WoW Token price updated to " .. tokenPriceInGold .. " gold.")
             -- Update the label after fetching the price
             if tokenLabel then
                 UpdateTokenLabel(tokenLabel)
