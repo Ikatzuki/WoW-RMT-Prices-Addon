@@ -77,7 +77,7 @@ end)
 -- Create the options window
 function RMTGoldPrices.CreateOptionsWindow()
     local optionsFrame = CreateFrame("Frame", "RMTGoldPricesOptionsFrame", UIParent, "BasicFrameTemplateWithInset")
-    optionsFrame:SetSize(500, 350) -- Adjusted height to fit new options
+    optionsFrame:SetSize(450, 300) -- Adjusted width to fit credits text
     optionsFrame:SetPoint("CENTER") -- position at the center of the screen
     optionsFrame:SetMovable(true)
     optionsFrame:EnableMouse(true)
@@ -123,60 +123,37 @@ function RMTGoldPrices.CreateOptionsWindow()
         end
     end)
 
-    -- Enable Chat Feature text
-    local chatFeatureLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
-    chatFeatureLabel:SetFontObject("GameFontNormal")
-    chatFeatureLabel:SetPoint("TOPLEFT", 10, -65)
-    chatFeatureLabel:SetText("Enable Chat Feature:")
+    -- Function to create a feature option
+    local function CreateFeatureOption(labelText, settingKey, anchorFrame)
+        local label = optionsFrame:CreateFontString(nil, "OVERLAY")
+        label:SetFontObject("GameFontNormal")
+        label:SetPoint("TOPLEFT", anchorFrame, "BOTTOMLEFT", 0, -15)
+        label:SetText(labelText)
 
-    -- Enable Chat Feature checkbox
-    local chatFeatureCheckbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
-    chatFeatureCheckbox:SetPoint("LEFT", chatFeatureLabel, "RIGHT", 10, 0)
-    chatFeatureCheckbox:SetChecked(RMTGoldPricesDB.enableChatFeature)
+        local checkbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
+        checkbox:SetPoint("LEFT", label, "RIGHT", 10, 0)
+        checkbox:SetChecked(RMTGoldPricesDB[settingKey])
 
-    -- Enable Vendor Feature text
-    local vendorFeatureLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
-    vendorFeatureLabel:SetFontObject("GameFontNormal")
-    vendorFeatureLabel:SetPoint("TOPLEFT", 10, -90)
-    vendorFeatureLabel:SetText("Enable Vendor Feature:")
+        return label, checkbox
+    end
 
-    -- Enable Vendor Feature checkbox
-    local vendorFeatureCheckbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
-    vendorFeatureCheckbox:SetPoint("LEFT", vendorFeatureLabel, "RIGHT", 10, 0)
-    vendorFeatureCheckbox:SetChecked(RMTGoldPricesDB.enableVendorFeature)
+    -- Create feature options
+    local chatFeatureLabel, chatFeatureCheckbox = CreateFeatureOption("Enable Chat Feature:", "enableChatFeature",
+        tokenLabel)
+    local vendorFeatureLabel, vendorFeatureCheckbox = CreateFeatureOption("Enable Vendor Feature:",
+        "enableVendorFeature", chatFeatureLabel)
+    local tooltipFeatureLabel, tooltipFeatureCheckbox = CreateFeatureOption("Enable Tooltip Feature:",
+        "enableTooltipFeature", vendorFeatureLabel)
+    local auctionHouseFeatureLabel, auctionHouseFeatureCheckbox =
+        CreateFeatureOption("Enable Auction House Feature:", "enableAuctionHouseFeature", tooltipFeatureLabel)
+    local bagsFeatureLabel, bagsFeatureCheckbox = CreateFeatureOption("Enable Bags Feature (Requires reload):",
+        "enableBagsFeature", auctionHouseFeatureLabel)
 
-    -- Enable Tooltip Feature text
-    local tooltipFeatureLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
-    tooltipFeatureLabel:SetFontObject("GameFontNormal")
-    tooltipFeatureLabel:SetPoint("TOPLEFT", 10, -115)
-    tooltipFeatureLabel:SetText("Enable Tooltip Feature:")
-
-    -- Enable Tooltip Feature checkbox
-    local tooltipFeatureCheckbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
-    tooltipFeatureCheckbox:SetPoint("LEFT", tooltipFeatureLabel, "RIGHT", 10, 0)
-    tooltipFeatureCheckbox:SetChecked(RMTGoldPricesDB.enableTooltipFeature)
-
-    -- Enable Auction House Feature text
-    local auctionHouseFeatureLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
-    auctionHouseFeatureLabel:SetFontObject("GameFontNormal")
-    auctionHouseFeatureLabel:SetPoint("TOPLEFT", 10, -140)
-    auctionHouseFeatureLabel:SetText("Enable Auction House Feature:")
-
-    -- Enable Auction House Feature checkbox
-    local auctionHouseFeatureCheckbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
-    auctionHouseFeatureCheckbox:SetPoint("LEFT", auctionHouseFeatureLabel, "RIGHT", 10, 0)
-    auctionHouseFeatureCheckbox:SetChecked(RMTGoldPricesDB.enableAuctionHouseFeature)
-
-    -- Enable Bags Feature text
-    local bagsFeatureLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
-    bagsFeatureLabel:SetFontObject("GameFontNormal")
-    bagsFeatureLabel:SetPoint("TOPLEFT", 10, -165)
-    bagsFeatureLabel:SetText("Enable Bags Feature (Requires reload):")
-
-    -- Enable Bags Feature checkbox
-    local bagsFeatureCheckbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
-    bagsFeatureCheckbox:SetPoint("LEFT", bagsFeatureLabel, "RIGHT", 10, 0)
-    bagsFeatureCheckbox:SetChecked(RMTGoldPricesDB.enableBagsFeature)
+    -- Credits text
+    local CreditsLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
+    CreditsLabel:SetFontObject("GameFontNormal")
+    CreditsLabel:SetPoint("BOTTOM", 0, 50)
+    CreditsLabel:SetText("|cFFFFFFFFMade by Richiep - Mankrik (US) with help from Khaat - Mankrik (US)|r")
 
     -- Save button
     local saveButton = CreateFrame("Button", nil, optionsFrame, "GameMenuButtonTemplate")
@@ -191,7 +168,7 @@ function RMTGoldPrices.CreateOptionsWindow()
         local newVendorFeatureEnabled = vendorFeatureCheckbox:GetChecked()
         local newTooltipFeatureEnabled = tooltipFeatureCheckbox:GetChecked()
         local newAuctionHouseFeatureEnabled = auctionHouseFeatureCheckbox:GetChecked()
-        local newBagsFeatureEnabled = bagsFeatureCheckbox:GetChecked() -- Ensure this is correctly referenced
+        local newBagsFeatureEnabled = bagsFeatureCheckbox:GetChecked()
 
         -- Save current settings to check against the new settings later
         local oldBagsFeatureEnabled = RMTGoldPricesDB.enableBagsFeature
@@ -213,15 +190,11 @@ end
 
 -- Slash command to show options window
 SLASH_RGP1 = "/rgp"
-SlashCmdList["RGP"] = function(msg)
-    if msg == "options" then
-        if not RMTGoldPricesOptionsFrame then
-            RMTGoldPrices.CreateOptionsWindow()
-        end
-        RMTGoldPricesOptionsFrame:Show()
-    else
-        print("RMTGoldPrices: Unknown command. Use '/rgp options' to open the options window")
+SlashCmdList["RGP"] = function()
+    if not RMTGoldPricesOptionsFrame then
+        RMTGoldPrices.CreateOptionsWindow()
     end
+    RMTGoldPricesOptionsFrame:Show()
 end
 
 -- Ensure settings are loaded immediately
