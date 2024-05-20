@@ -34,7 +34,7 @@ end
 -- Function to handle the merchant frame update event
 local function OnMerchantFrameUpdate()
     if not GoldtoCashValueDB.enableVendorFeature then
-        ClearOldDollarTexts() -- Ensure old texts are hidden if feature is disabled
+        ClearOldDollarTexts()
         return
     end
     ClearOldDollarTexts()
@@ -52,7 +52,7 @@ end
 -- Function to handle merchant show event
 local function OnMerchantShow()
     if not GoldtoCashValueDB.enableVendorFeature then
-        ClearOldDollarTexts() -- Ensure old texts are hidden if feature is disabled
+        ClearOldDollarTexts()
         return
     end
     OnMerchantFrameUpdate()
@@ -64,7 +64,7 @@ local lastPage = nil
 local elapsedSinceLastUpdate = 0
 updateFrame:SetScript("OnUpdate", function(self, elapsed)
     elapsedSinceLastUpdate = elapsedSinceLastUpdate + elapsed
-    if elapsedSinceLastUpdate >= 0.3 then -- 300 ms
+    if elapsedSinceLastUpdate >= 0.3 then
         elapsedSinceLastUpdate = 0
         if MerchantFrame:IsVisible() then
             local currentPage = MerchantFrame.page

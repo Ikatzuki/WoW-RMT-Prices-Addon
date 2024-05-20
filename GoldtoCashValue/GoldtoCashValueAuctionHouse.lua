@@ -55,7 +55,7 @@ local function HookAuctionHouse()
     end
 
     -- Hook into the click event for auction items
-    for i = 1, 50 do -- Assuming a maximum of 50 items visible in the auction house window
+    for i = 1, 50 do
         local button = _G["BrowseButton" .. i]
         if button and not button.isHooked then
             button:HookScript("OnClick", function()
@@ -63,7 +63,7 @@ local function HookAuctionHouse()
                     UpdateBuyoutPriceDisplay(i)
                 end)
             end)
-            button.isHooked = true -- Mark this button as hooked
+            button.isHooked = true
         end
     end
 end
@@ -72,11 +72,10 @@ end
 local function OnEvent(self, event, ...)
     if event == "AUCTION_HOUSE_SHOW" then
         if not GoldtoCashValueDB.enableAuctionHouseFeature then
-            ClearBuyoutPriceDisplay() -- Clear the dollar value text when the Auction House is opened if the feature is disabled
+            ClearBuyoutPriceDisplay()
             return
         end
-
-        ClearBuyoutPriceDisplay() -- Clear the dollar value text when the Auction House is opened
+        ClearBuyoutPriceDisplay()
         HookAuctionHouse()
     end
 end

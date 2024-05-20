@@ -3,12 +3,12 @@ GoldtoCashValue = {}
 
 -- Default values for saved variables
 GoldtoCashValue.defaultSettings = {
-    wowTokenPrice = 1, -- Default WoW Token price in gold
-    enableChatFeature = true, -- Enable Chat feature by default
-    enableVendorFeature = true, -- Enable Vendor feature by default
-    enableTooltipFeature = true, -- Enable Tooltip feature by default
-    enableAuctionHouseFeature = true, -- Enable Auction House feature by default
-    enableBagsFeature = true -- Enable Bags feature by default
+    wowTokenPrice = 5000,
+    enableChatFeature = true,
+    enableVendorFeature = true,
+    enableTooltipFeature = true,
+    enableAuctionHouseFeature = true,
+    enableBagsFeature = true
 }
 
 -- Function to load saved variables
@@ -70,15 +70,15 @@ eventFrame:SetScript("OnEvent", function(self, event, name)
     if event == "ADDON_LOADED" then
         OnAddonLoaded(event, name)
     elseif event == "PLAYER_LOGIN" then
-        GoldtoCashValue.FetchWowTokenPrice(nil, false) -- Fetch token price on login without printing
+        GoldtoCashValue.FetchWowTokenPrice(nil, false)
     end
 end)
 
 -- Create the options window
 function GoldtoCashValue.CreateOptionsWindow()
     local optionsFrame = CreateFrame("Frame", "GoldtoCashValueOptionsFrame", UIParent, "BasicFrameTemplateWithInset")
-    optionsFrame:SetSize(450, 300) -- Adjusted width to fit credits text
-    optionsFrame:SetPoint("CENTER") -- position at the center of the screen
+    optionsFrame:SetSize(450, 300)
+    optionsFrame:SetPoint("CENTER")
     optionsFrame:SetMovable(true)
     optionsFrame:EnableMouse(true)
     optionsFrame:RegisterForDrag("LeftButton")
@@ -104,7 +104,7 @@ function GoldtoCashValue.CreateOptionsWindow()
 
     -- Update WoW Token Price button
     local updateTokenButton = CreateFrame("Button", nil, optionsFrame, "GameMenuButtonTemplate")
-    updateTokenButton:SetSize(175, 25) -- width, height
+    updateTokenButton:SetSize(175, 25)
     updateTokenButton:SetPoint("LEFT", tokenLabel, "RIGHT", 10, 0)
     updateTokenButton:SetText("Update WoW Token Price")
     updateTokenButton:SetNormalFontObject("GameFontNormal")
@@ -114,7 +114,7 @@ function GoldtoCashValue.CreateOptionsWindow()
     updateTokenButton:SetScript("OnClick", function()
         if canClickUpdate then
             canClickUpdate = false
-            GoldtoCashValue.FetchWowTokenPrice(tokenLabel, true) -- Fetch token price and print
+            GoldtoCashValue.FetchWowTokenPrice(tokenLabel, true)
             C_Timer.After(5, function()
                 canClickUpdate = true
             end)
@@ -157,7 +157,7 @@ function GoldtoCashValue.CreateOptionsWindow()
 
     -- Save button
     local saveButton = CreateFrame("Button", nil, optionsFrame, "GameMenuButtonTemplate")
-    saveButton:SetSize(80, 30) -- width, height
+    saveButton:SetSize(80, 30)
     saveButton:SetPoint("BOTTOM", 0, 10)
     saveButton:SetText("Save")
     saveButton:SetNormalFontObject("GameFontNormalLarge")
@@ -181,7 +181,7 @@ function GoldtoCashValue.CreateOptionsWindow()
 
         -- Check if the bags feature setting was changed
         if oldBagsFeatureEnabled ~= newBagsFeatureEnabled then
-            ReloadUI() -- Reload the UI to apply the changes
+            ReloadUI()
         else
             optionsFrame:Hide()
         end
