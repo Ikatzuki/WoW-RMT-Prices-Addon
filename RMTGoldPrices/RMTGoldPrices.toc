@@ -9,3 +9,4 @@ RMTGoldPricesChat.lua
 RMTGoldPricesVendor.lua
 RMTGoldPricesTooltip.lua
 RMTGoldPricesAuctionHouse.lua
+RMTGoldPricesBags.lua
