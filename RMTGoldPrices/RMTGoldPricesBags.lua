@@ -56,6 +56,9 @@ end
 -- Event handler function
 local function OnEvent(self, event, ...)
     if event == "PLAYER_MONEY" or event == "PLAYER_ENTERING_WORLD" then
+        if not RMTGoldPricesDB.enableBagsFeature then
+            return
+        end
         UpdateGoldDisplay()
     end
 end

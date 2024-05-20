@@ -7,7 +7,8 @@ RMTGoldPrices.defaultSettings = {
     enableChatFeature = true, -- Enable Chat feature by default
     enableVendorFeature = true, -- Enable Vendor feature by default
     enableTooltipFeature = true, -- Enable Tooltip feature by default
-    enableAuctionHouseFeature = true -- Enable Auction House feature by default
+    enableAuctionHouseFeature = true, -- Enable Auction House feature by default
+    enableBagsFeature = true -- Enable Bags feature by default
 }
 
 -- Function to load saved variables
@@ -166,6 +167,17 @@ function RMTGoldPrices.CreateOptionsWindow()
     auctionHouseFeatureCheckbox:SetPoint("LEFT", auctionHouseFeatureLabel, "RIGHT", 10, 0)
     auctionHouseFeatureCheckbox:SetChecked(RMTGoldPricesDB.enableAuctionHouseFeature)
 
+    -- Enable Bags Feature text
+    local bagsFeatureLabel = optionsFrame:CreateFontString(nil, "OVERLAY")
+    bagsFeatureLabel:SetFontObject("GameFontNormal")
+    bagsFeatureLabel:SetPoint("TOPLEFT", 10, -165)
+    bagsFeatureLabel:SetText("Enable Bags Feature (Requires reload):")
+
+    -- Enable Bags Feature checkbox
+    local bagsFeatureCheckbox = CreateFrame("CheckButton", nil, optionsFrame, "ChatConfigCheckButtonTemplate")
+    bagsFeatureCheckbox:SetPoint("LEFT", bagsFeatureLabel, "RIGHT", 10, 0)
+    bagsFeatureCheckbox:SetChecked(RMTGoldPricesDB.enableBagsFeature)
+
     -- Save button
     local saveButton = CreateFrame("Button", nil, optionsFrame, "GameMenuButtonTemplate")
     saveButton:SetSize(80, 30) -- width, height
@@ -179,14 +191,19 @@ function RMTGoldPrices.CreateOptionsWindow()
         local newVendorFeatureEnabled = vendorFeatureCheckbox:GetChecked()
         local newTooltipFeatureEnabled = tooltipFeatureCheckbox:GetChecked()
         local newAuctionHouseFeatureEnabled = auctionHouseFeatureCheckbox:GetChecked()
+        local newBagsFeatureEnabled = bagsFeatureCheckbox:GetChecked() -- Ensure this is correctly referenced
+
+        -- Save current settings to check against the new settings later
+        local oldBagsFeatureEnabled = RMTGoldPricesDB.enableBagsFeature
 
         RMTGoldPricesDB.enableChatFeature = newChatFeatureEnabled
         RMTGoldPricesDB.enableVendorFeature = newVendorFeatureEnabled
         RMTGoldPricesDB.enableTooltipFeature = newTooltipFeatureEnabled
         RMTGoldPricesDB.enableAuctionHouseFeature = newAuctionHouseFeatureEnabled
+        RMTGoldPricesDB.enableBagsFeature = newBagsFeatureEnabled
 
-        -- Check if vendor feature setting was changed
-        if newVendorFeatureEnabled ~= RMTGoldPricesDB.enableVendorFeature then
+        -- Check if the bags feature setting was changed
+        if oldBagsFeatureEnabled ~= newBagsFeatureEnabled then
             ReloadUI() -- Reload the UI to apply the changes
         else
             optionsFrame:Hide()
