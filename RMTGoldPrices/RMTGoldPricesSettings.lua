@@ -29,7 +29,7 @@ local function UpdateTokenLabel(tokenLabel)
 end
 
 -- Function to fetch WoW Token price
-function RMTGoldPrices.FetchWowTokenPrice(tokenLabel)
+function RMTGoldPrices.FetchWowTokenPrice(tokenLabel, triggeredByButton)
     -- Update the market price first
     C_WowTokenPublic.UpdateMarketPrice()
 
@@ -43,6 +43,9 @@ function RMTGoldPrices.FetchWowTokenPrice(tokenLabel)
             -- Update the label after fetching the price
             if tokenLabel then
                 UpdateTokenLabel(tokenLabel)
+            end
+            if triggeredByButton then
+                print("RMTGoldPrices: WoW Token price updated to " .. tokenPriceInGold .. " gold.")
             end
         else
             print("RMTGoldPrices: Failed to retrieve the current market price.")
@@ -66,7 +69,7 @@ eventFrame:SetScript("OnEvent", function(self, event, name)
     if event == "ADDON_LOADED" then
         OnAddonLoaded(event, name)
     elseif event == "PLAYER_LOGIN" then
-        RMTGoldPrices.FetchWowTokenPrice()
+        RMTGoldPrices.FetchWowTokenPrice(nil, false) -- Fetch token price on login without printing
     end
 end)
 
@@ -89,7 +92,7 @@ function RMTGoldPrices.CreateOptionsWindow()
     -- Title text
     local title = optionsFrame:CreateFontString(nil, "OVERLAY")
     title:SetFontObject("GameFontHighlightLarge")
-    title:SetPoint("TOP", 0, -10)
+    title:SetPoint("TOP", 0, -3)
     title:SetText("RMTGoldPrices Options")
 
     -- WoW Token Price text
@@ -100,7 +103,7 @@ function RMTGoldPrices.CreateOptionsWindow()
 
     -- Update WoW Token Price button
     local updateTokenButton = CreateFrame("Button", nil, optionsFrame, "GameMenuButtonTemplate")
-    updateTokenButton:SetSize(150, 20) -- width, height
+    updateTokenButton:SetSize(175, 25) -- width, height
     updateTokenButton:SetPoint("LEFT", tokenLabel, "RIGHT", 10, 0)
     updateTokenButton:SetText("Update WoW Token Price")
     updateTokenButton:SetNormalFontObject("GameFontNormal")
@@ -110,7 +113,7 @@ function RMTGoldPrices.CreateOptionsWindow()
     updateTokenButton:SetScript("OnClick", function()
         if canClickUpdate then
             canClickUpdate = false
-            RMTGoldPrices.FetchWowTokenPrice(tokenLabel)
+            RMTGoldPrices.FetchWowTokenPrice(tokenLabel, true) -- Fetch token price and print
             C_Timer.After(5, function()
                 canClickUpdate = true
             end)
