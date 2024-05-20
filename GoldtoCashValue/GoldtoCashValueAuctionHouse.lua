@@ -72,6 +72,7 @@ end
 local function OnEvent(self, event, ...)
     if event == "AUCTION_HOUSE_SHOW" then
         if not GoldtoCashValueDB.enableAuctionHouseFeature then
+            ClearBuyoutPriceDisplay() -- Clear the dollar value text when the Auction House is opened if the feature is disabled
             return
         end
 
