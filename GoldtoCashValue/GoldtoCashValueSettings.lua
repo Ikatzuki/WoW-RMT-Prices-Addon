@@ -90,6 +90,9 @@ function GoldtoCashValue.CreateOptionsWindow()
     end)
     optionsFrame:Hide()
 
+    -- Add the options frame to UISpecialFrames to enable closing with Escape key
+    tinsert(UISpecialFrames, "GoldtoCashValueOptionsFrame")
+
     -- Title text
     local title = optionsFrame:CreateFontString(nil, "OVERLAY")
     title:SetFontObject("GameFontHighlightLarge")
