@@ -25,8 +25,8 @@ local function OnChatMessage(self, event, msg, author, ...)
 
     -- Pattern to find any item link
     local itemLinkPattern = "|c%x+|Hitem:.-|h.-|h|r"
-    -- Pattern to find gold amounts (with suffixes g/G or k/K)
-    local goldPattern = "(%d+[gGkK])"
+    -- Pattern to find gold amounts (with suffixes g/G or k/K) with boundaries
+    local goldPattern = "(%f[%a%d]%d+[gGkK]%f[%A])"
 
     -- Function to append currency to gold amount
     local function appendCurrencyToGoldAmount(goldAmount)
@@ -38,83 +38,46 @@ local function OnChatMessage(self, event, msg, author, ...)
     end
 
     -- Function to handle modification of message segments
-    local function modifySegment(segment, hasItemLink)
+    local function modifySegment(segment)
         local modified = false
-        local newSegment
-
-        if hasItemLink then
-            -- Allow for either a space or no space before the gold amount if there is an item link
-            newSegment = segment:gsub("(" .. itemLinkPattern .. ")(%s?)(%d+[gGkK])",
-                function(itemLink, space, goldAmount)
-                    if goldAmount then
-                        local modifiedGoldAmount = appendCurrencyToGoldAmount(goldAmount)
-                        modified = true
-                        return itemLink .. space .. modifiedGoldAmount
-                    end
-                    return itemLink .. (goldAmount or "")
-                end)
-        else
-            -- Allow spaces before and after the gold amount if there is no item link
-            newSegment = segment:gsub("(%s)(%d+[gGkK])(%s?)", function(space, goldAmount, trailingSpace)
-                if goldAmount then
-                    local modifiedGoldAmount = appendCurrencyToGoldAmount(goldAmount)
-                    modified = true
-                    return space .. modifiedGoldAmount .. trailingSpace
-                end
-                return space .. goldAmount .. trailingSpace
-            end)
-
-            -- Handle cases where gold amount is at the end of the segment without trailing spaces
-            if not modified then
-                newSegment = segment:gsub("(%d+[gGkK])$", function(goldAmount)
-                    if goldAmount then
-                        local modifiedGoldAmount = appendCurrencyToGoldAmount(goldAmount)
-                        modified = true
-                        return modifiedGoldAmount
-                    end
-                    return goldAmount
-                end)
+        local newSegment = segment:gsub(goldPattern, function(goldAmount)
+            if goldAmount then
+                local modifiedGoldAmount = appendCurrencyToGoldAmount(goldAmount)
+                modified = true
+                return modifiedGoldAmount
             end
-        end
-        return newSegment
+            return goldAmount
+        end)
+        return newSegment, modified
     end
 
     -- Check each part for item links and gold amounts
     local newMsg = ""
     local startIndex = 1
     local hasItemLink = msg:find(itemLinkPattern) ~= nil
+    local modified = false
 
     while startIndex <= #msg do
         local segmentStart, segmentEnd, itemLink = msg:find("(" .. itemLinkPattern .. ")", startIndex)
         if not segmentStart then
             local remainingSegment = msg:sub(startIndex)
-            newMsg = newMsg .. modifySegment(remainingSegment, hasItemLink)
+            local modifiedSegment, wasModified = modifySegment(remainingSegment)
+            newMsg = newMsg .. modifiedSegment
+            modified = modified or wasModified
             break
         else
             local segmentBefore = msg:sub(startIndex, segmentStart - 1)
-            newMsg = newMsg .. modifySegment(segmentBefore, hasItemLink) .. itemLink
+            local modifiedSegment, wasModified = modifySegment(segmentBefore)
+            newMsg = newMsg .. modifiedSegment .. itemLink
+            modified = modified or wasModified
 
-            -- Check for gold amount right after the item link with or without space
-            local afterItemLink = msg:sub(segmentEnd + 1)
-            local goldAmountWithSpace = afterItemLink:match("^%s(%d+[gGkK])")
-            local goldAmountNoSpace = afterItemLink:match("^(%d+[gGkK])")
-
-            if goldAmountWithSpace then
-                local modifiedGoldAmount = appendCurrencyToGoldAmount(goldAmountWithSpace)
-                newMsg = newMsg .. " " .. modifiedGoldAmount
-                startIndex = segmentEnd + #goldAmountWithSpace + 2
-            elseif goldAmountNoSpace then
-                local modifiedGoldAmount = appendCurrencyToGoldAmount(goldAmountNoSpace)
-                newMsg = newMsg .. modifiedGoldAmount
-                startIndex = segmentEnd + #goldAmountNoSpace + 1
-            else
-                startIndex = segmentEnd + 1
-            end
+            -- Continue parsing after the item link
+            startIndex = segmentEnd + 1
         end
     end
 
     -- Return the modified message if it was changed
-    if newMsg ~= msg then
+    if modified then
         return false, newMsg, author, ...
     end
 
@@ -125,6 +88,7 @@ end
 -- Function to append the equivalent dollar value
 function RMTGoldPrices.AppendCurrency(number, suffix, post)
     local num = tonumber(number)
+    local tokenDollarValue
 
     if suffix == "g" or suffix == "G" then
         tokenDollarValue = (num / RMTGoldPricesDB.wowTokenPrice) * 20
