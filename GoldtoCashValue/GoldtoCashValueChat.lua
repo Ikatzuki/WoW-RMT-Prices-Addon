@@ -30,11 +30,20 @@ local function OnChatMessage(self, event, msg, author, ...)
 
     -- Function to append currency to gold amount
     local function appendCurrencyToGoldAmount(goldAmount)
-        -- Remove commas and dots
-        local cleanedGoldAmount = goldAmount:gsub("[,%.]", "")
-        local number, suffix = cleanedGoldAmount:match("(%d+)([gGkK])")
+        local number, suffix = goldAmount:match("([%d,%.]+)([gGkK])")
         if number and suffix then
-            return GoldtoCashValue.AppendCurrency(number, suffix, "")
+            local cleanedNumber = number:gsub(",", "") -- Remove commas
+            local num
+            if suffix:lower() == "g" then
+                cleanedNumber = cleanedNumber:gsub("%.", "") -- Remove dots for "g"
+                num = tonumber(cleanedNumber)
+            elseif suffix:lower() == "k" then
+                num = tonumber(cleanedNumber) * 1000 -- Convert to thousands
+            end
+            if num then
+                local dollarValue = (num / GoldtoCashValueDB.wowTokenPrice) * 20
+                return goldAmount .. string.format(" |cFFFFD700($%.2f)|r", dollarValue)
+            end
         end
         return goldAmount
     end
