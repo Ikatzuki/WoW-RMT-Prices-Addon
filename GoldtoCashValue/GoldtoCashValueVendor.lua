@@ -7,13 +7,13 @@ end
 
 -- Function to create or update the dollar text above the vendor item price
 local function UpdateVendorItemDollarText(index, dollarText)
-    local itemNameFrame = _G["MerchantItem" .. index .. "Name"]
-    if itemNameFrame then
+    local itemIconFrame = _G["MerchantItem" .. index .. "SlotTexture"]
+    if itemIconFrame then
         local moneyFrame = _G["MerchantItem" .. index .. "MoneyFrame"]
         if moneyFrame then
             if not moneyFrame.dollarText then
                 moneyFrame.dollarText = moneyFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-                moneyFrame.dollarText:SetPoint("BOTTOMLEFT", itemNameFrame, "TOPLEFT", 15, -2)
+                moneyFrame.dollarText:SetPoint("BOTTOM", itemIconFrame, "TOP", 0, -13)
             end
             moneyFrame.dollarText:SetText(dollarText)
             moneyFrame.dollarText:Show()
