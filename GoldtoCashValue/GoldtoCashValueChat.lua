@@ -42,7 +42,11 @@ local function OnChatMessage(self, event, msg, author, ...)
             end
             if num then
                 local dollarValue = (num / GoldtoCashValueDB.wowTokenPrice) * 20
-                return goldAmount .. string.format(" |cFFFFD700($%.2f)|r", dollarValue)
+                if dollarValue >= 0.01 then
+                    return goldAmount .. string.format(" |cFFFFD700($%.2f)|r", dollarValue)
+                else
+                    return goldAmount
+                end
             end
         end
         return goldAmount
@@ -107,7 +111,11 @@ function GoldtoCashValue.AppendCurrency(number, suffix, post)
         tokenDollarValue = (num * 1000 / GoldtoCashValueDB.wowTokenPrice) * 20
     end
 
-    return number .. suffix .. string.format(" |cFFFFD700($%.2f)|r", tokenDollarValue) .. post
+    if tokenDollarValue >= 0.01 then
+        return number .. suffix .. string.format(" |cFFFFD700($%.2f)|r", tokenDollarValue) .. post
+    else
+        return number .. suffix .. post
+    end
 end
 
 -- Add the message filter to modify chat messages
