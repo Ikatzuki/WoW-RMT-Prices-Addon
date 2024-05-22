@@ -3,7 +3,9 @@ local function AppendDollarValueToBuyoutPrice(buyoutPrice)
     local goldValue = buyoutPrice / 10000
     local tokenDollarValue = (goldValue / GoldtoCashValueDB.wowTokenPrice) * 20
 
-    return string.format(" |cFFFFD700($%.2f)|r", tokenDollarValue)
+    if tokenDollarValue >= 0.01 then
+        return string.format(" |cFFFFD700($%.2f)|r", tokenDollarValue)
+    end
 end
 
 -- Function to update the buyout price display with the dollar value
