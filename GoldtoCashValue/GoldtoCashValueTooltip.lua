@@ -4,16 +4,18 @@ local function AddDollarValueToVendorPrice(tooltipFrame, vendorPrice, countStrin
         local goldValue = vendorPrice / 10000
         local tokenDollarValue = (goldValue / GoldtoCashValueDB.wowTokenPrice) * 20
 
-        local dollarText = string.format(" ($%.2f)", tokenDollarValue)
+        if tokenDollarValue >= 0.01 then
+            local dollarText = string.format(" ($%.2f)", tokenDollarValue)
 
-        -- Find the vendor price line and append the dollar value
-        for i = 1, tooltipFrame:NumLines() do
-            local leftLine = _G[tooltipFrame:GetName() .. "TextLeft" .. i]
-            local rightLine = _G[tooltipFrame:GetName() .. "TextRight" .. i]
-            if leftLine and rightLine and leftLine:GetText() and leftLine:GetText():find("Vendor") then
-                rightLine:SetText(rightLine:GetText() .. dollarText)
-                tooltipFrame:Show()
-                return
+            -- Find the vendor price line and append the dollar value
+            for i = 1, tooltipFrame:NumLines() do
+                local leftLine = _G[tooltipFrame:GetName() .. "TextLeft" .. i]
+                local rightLine = _G[tooltipFrame:GetName() .. "TextRight" .. i]
+                if leftLine and rightLine and leftLine:GetText() and leftLine:GetText():find("Vendor") then
+                    rightLine:SetText(rightLine:GetText() .. dollarText)
+                    tooltipFrame:Show()
+                    return
+                end
             end
         end
     end
@@ -25,16 +27,18 @@ local function AddDollarValueToAuctionPrice(tooltipFrame, auctionPrice, countStr
         local goldValue = auctionPrice / 10000
         local tokenDollarValue = (goldValue / GoldtoCashValueDB.wowTokenPrice) * 20
 
-        local dollarText = string.format(" ($%.2f)", tokenDollarValue)
+        if tokenDollarValue >= 0.01 then
+            local dollarText = string.format(" ($%.2f)", tokenDollarValue)
 
-        -- Find the auction price line and append the dollar value
-        for i = 1, tooltipFrame:NumLines() do
-            local leftLine = _G[tooltipFrame:GetName() .. "TextLeft" .. i]
-            local rightLine = _G[tooltipFrame:GetName() .. "TextRight" .. i]
-            if leftLine and rightLine and leftLine:GetText() and leftLine:GetText():find("Auction") then
-                rightLine:SetText(rightLine:GetText() .. dollarText)
-                tooltipFrame:Show()
-                return
+            -- Find the auction price line and append the dollar value
+            for i = 1, tooltipFrame:NumLines() do
+                local leftLine = _G[tooltipFrame:GetName() .. "TextLeft" .. i]
+                local rightLine = _G[tooltipFrame:GetName() .. "TextRight" .. i]
+                if leftLine and rightLine and leftLine:GetText() and leftLine:GetText():find("Auction") then
+                    rightLine:SetText(rightLine:GetText() .. dollarText)
+                    tooltipFrame:Show()
+                    return
+                end
             end
         end
     end
@@ -49,11 +53,13 @@ local function OnTooltipSetItem(tooltip, ...)
             local goldValue = sellPrice / 10000
             local tokenDollarValue = (goldValue / GoldtoCashValueDB.wowTokenPrice) * 20
 
-            local dollarText = string.format("|cFFFFFFFFVendor: |cFFFFD700($%.2f)|r", tokenDollarValue)
+            if tokenDollarValue >= 0.01 then
+                local dollarText = string.format("|cFFFFFFFFVendor: |cFFFFD700($%.2f)|r", tokenDollarValue)
 
-            -- Add the dollar text below the regular vendor price using AddLine
-            tooltip:AddLine(dollarText)
-            tooltip:Show()
+                -- Add the dollar text below the regular vendor price using AddLine
+                tooltip:AddLine(dollarText)
+                tooltip:Show()
+            end
         end
     end
 end
