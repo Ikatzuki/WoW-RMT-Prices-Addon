@@ -8,7 +8,7 @@ local function OnChatMessage(self, event, msg, author, ...)
     end
 
     -- Use the unique ID for each message to avoid duplicates
-    local msgId = msg .. author
+    local msgId = msg .. author .. event
 
     -- Check if the message has already been processed
     if processedMessages[msgId] then
@@ -44,8 +44,6 @@ local function OnChatMessage(self, event, msg, author, ...)
                 local dollarValue = (num / GoldtoCashValueDB.wowTokenPrice) * 20
                 if dollarValue >= 0.01 then
                     return goldAmount .. string.format(" |cFFFFD700($%.2f)|r", dollarValue)
-                else
-                    return goldAmount
                 end
             end
         end
@@ -113,9 +111,9 @@ function GoldtoCashValue.AppendCurrency(number, suffix, post)
 
     if tokenDollarValue >= 0.01 then
         return number .. suffix .. string.format(" |cFFFFD700($%.2f)|r", tokenDollarValue) .. post
-    else
-        return number .. suffix .. post
     end
+
+    return number .. suffix .. post
 end
 
 -- Add the message filter to modify chat messages
@@ -123,7 +121,9 @@ ChatFrame_AddMessageEventFilter("CHAT_MSG_SAY", OnChatMessage)
 ChatFrame_AddMessageEventFilter("CHAT_MSG_YELL", OnChatMessage)
 ChatFrame_AddMessageEventFilter("CHAT_MSG_CHANNEL", OnChatMessage)
 ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER", OnChatMessage)
+ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER_INFORM", OnChatMessage)
 ChatFrame_AddMessageEventFilter("CHAT_MSG_PARTY", OnChatMessage)
+ChatFrame_AddMessageEventFilter("CHAT_MSG_PARTY_LEADER", OnChatMessage)
 ChatFrame_AddMessageEventFilter("CHAT_MSG_GUILD", OnChatMessage)
 ChatFrame_AddMessageEventFilter("CHAT_MSG_OFFICER", OnChatMessage)
 ChatFrame_AddMessageEventFilter("CHAT_MSG_RAID", OnChatMessage)
