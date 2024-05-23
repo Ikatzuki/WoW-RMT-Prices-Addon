@@ -41,10 +41,12 @@ local function OnMerchantFrameUpdate()
     local numItems = GetMerchantNumItems()
     for index = 1, MERCHANT_ITEMS_PER_PAGE do
         local itemPrice = select(3, GetMerchantItemInfo(index + ((MerchantFrame.page - 1) * MERCHANT_ITEMS_PER_PAGE)))
-        if itemPrice and itemPrice >= 10000 then
+        if itemPrice and itemPrice > 0 then
             local tokenDollarValue = ConvertToDollarValue(itemPrice)
-            local dollarText = string.format("$%.2f", tokenDollarValue)
-            UpdateVendorItemDollarText(index, dollarText)
+            if tokenDollarValue >= 0.01 then
+                local dollarText = string.format("$%.2f", tokenDollarValue)
+                UpdateVendorItemDollarText(index, dollarText)
+            end
         end
     end
 end
