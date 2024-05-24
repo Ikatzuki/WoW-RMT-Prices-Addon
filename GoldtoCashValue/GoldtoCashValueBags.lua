@@ -15,9 +15,24 @@ local function UpdateGoldDisplay()
     local goldTextFrame
     local dollarText
 
-    if IsAddOnLoaded("ElvUI") then
-        -- ElvUI is loaded, use ElvUI_ContainerFrame.goldText
+    if IsAddOnLoaded("ElvUI") and _G["ElvUI_ContainerFrame"] then
+        -- ElvUI is loaded and ElvUI_ContainerFrame exists, use ElvUI_ContainerFrame.goldText
         goldTextFrame = _G["ElvUI_ContainerFrame"].goldText
+        if not goldTextFrame then
+            return
+        end
+
+        -- Create or update the dollar text
+        if not goldTextFrame.dollarText then
+            dollarText = goldTextFrame:GetParent():CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+            dollarText:SetPoint("RIGHT", goldTextFrame, "LEFT", -2, 0)
+            goldTextFrame.dollarText = dollarText
+        else
+            dollarText = goldTextFrame.dollarText
+        end
+    elseif IsAddOnLoaded("Bagnon") then
+        -- Bagnon is loaded, use Bagnon frame
+        goldTextFrame = _G["BagnonMoneyFrame1GoldButtonText"]
         if not goldTextFrame then
             return
         end
